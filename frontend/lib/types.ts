@@ -1,0 +1,9 @@
+export type AnyItem = {id:number;slug:string;sort_order:number;visible:boolean;[key:string]:unknown};
+export type Project = AnyItem & {name:string;description:string;body:string;tech_stack:string[];category:string;employer:string;year:string};
+export type Experience = AnyItem & {role:string;company:string;description:string;tech_stack:string[];start_date:string;end_date:string};
+export type Education = AnyItem & {school:string;degree:string;detail:string;start_date:string;end_date:string};
+export type Certification = AnyItem & {name:string;issuer:string;year:string};
+export type SkillGroup = AnyItem & {group:string;items:string[]};
+export type Social = AnyItem & {label:string;url:string};
+export type DocumentItem = AnyItem & {title?:string;title_tr?:string;title_en?:string;description?:string;description_tr?:string;description_en?:string;category:string;file_url:string;year:string};
+export type PortfolioData = {projects:Project[];experiences:Experience[];education:Education[];certifications:Certification[];skills:SkillGroup[];socials:Social[];documents:DocumentItem[];settings:Record<string,string>};

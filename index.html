@@ -1,0 +1,398 @@
+<meta charset="utf-8">
+<title>Gökçe Güler</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,300;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#F4F1EA;--fg:#2C2A25;--fg2:#7A756C;--fg3:#9E9890;
+  --sf:#EBE7DF;--ln:#D8D3CA;--ac:#D05A24;--ach:#B84D1F;
+  --pnl:#1C1B19;
+  --fd:'Outfit',system-ui,sans-serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'Playfair Display',Georgia,serif;
+}
+
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1A1917;--fg:#E8E4DC;--fg2:#9E9890;--fg3:#7A756C;
+    --sf:#242220;--ln:#2E2C28;--ac:#E07A4A;--ach:#D05A24;
+    --pnl:#141310;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1A1917;--fg:#E8E4DC;--fg2:#9E9890;--fg3:#7A756C;
+  --sf:#242220;--ln:#2E2C28;--ac:#E07A4A;--ach:#D05A24;
+  --pnl:#141310;
+}
+
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* ════════════════════════════════════════
+   SHELL
+   ════════════════════════════════════════ */
+#base{
+  position:fixed;left:0;top:0;width:50%;height:100%;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:56px 64px;background:var(--bg);
+  transition:left .7s cubic-bezier(.76,0,.24,1);z-index:2;
+}
+#grid{
+  position:fixed;right:0;top:0;width:50%;height:100%;
+  display:grid;grid-template-rows:1fr 1fr;grid-template-columns:1fr 1fr;
+  gap:1px;background:rgba(244,241,234,.06);
+  transition:right .7s cubic-bezier(.76,0,.24,1);z-index:2;
+}
+body.open #base{left:-100%}
+body.open #grid{right:-100%}
+
+/* ── Left column ── */
+.logo{font-family:var(--fm);font-style:italic;font-weight:300;font-size:72px;color:var(--fg);line-height:.9;letter-spacing:-.02em}
+
+.id-block{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.name{font-family:var(--fd);font-weight:700;font-size:clamp(36px,4vw,44px);line-height:1.05;letter-spacing:-.02em}
+.role{font-family:var(--fd);font-weight:400;font-size:clamp(15px,1.4vw,17px);color:var(--fg2);letter-spacing:.03em;margin-bottom:12px}
+.tagline{font-family:var(--fb);font-weight:300;font-size:15px;color:var(--fg3);line-height:1.6;max-width:400px}
+
+.social{display:flex;gap:28px;align-items:center}
+.social a{display:flex;transition:opacity .2s;opacity:.5}
+.social a:hover{opacity:.85}
+.social svg{width:20px;height:20px}
+
+/* ── Panels ── */
+.pnl{
+  position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;
+  cursor:pointer;overflow:hidden;color:rgba(244,241,234,.85);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.15);
+  transition:transform .12s ease;
+}
+.pnl:active{transform:scale(.97)}
+
+.p1{background:
+  radial-gradient(600px 400px at 20% 80%,rgba(208,90,36,.08),transparent 100%),
+  radial-gradient(400px 350px at 80% 15%,rgba(255,255,255,.03),transparent 100%),
+  linear-gradient(145deg,#201F1D 0%,#282622 35%,#1E1D1B 100%)
+}
+.p2{background:
+  radial-gradient(600px 400px at 80% 20%,rgba(130,155,180,.08),transparent 100%),
+  radial-gradient(400px 350px at 15% 85%,rgba(255,255,255,.02),transparent 100%),
+  linear-gradient(325deg,#1D1E21 0%,#232428 35%,#1C1D20 100%)
+}
+.p3{background:
+  radial-gradient(500px 450px at 50% 45%,rgba(175,150,135,.07),transparent 100%),
+  radial-gradient(350px 280px at 85% 85%,rgba(255,255,255,.02),transparent 100%),
+  linear-gradient(185deg,#1F1E1C 0%,#252321 35%,#1D1C1A 100%)
+}
+.p4{background:
+  radial-gradient(550px 400px at 25% 20%,rgba(130,165,155,.07),transparent 100%),
+  radial-gradient(400px 350px at 80% 80%,rgba(255,255,255,.02),transparent 100%),
+  linear-gradient(230deg,#1C1E1D 0%,#202322 35%,#1B1D1C 100%)
+}
+
+.pnl-icon{opacity:.5;transition:opacity .35s,transform .35s}
+.pnl:hover .pnl-icon{opacity:.7;transform:translateY(-2px)}
+
+.pnl-title{
+  font-family:var(--fd);font-weight:500;font-size:14px;
+  letter-spacing:.2em;text-transform:uppercase;
+  transition:letter-spacing .3s;
+}
+.pnl:hover .pnl-title{letter-spacing:.3em}
+
+/* ════════════════════════════════════════
+   CONTENT PAGES
+   ════════════════════════════════════════ */
+.page{
+  position:fixed;inset:0;
+  display:grid;grid-template-columns:1fr 52px;
+  transform:translateX(100%);opacity:0;
+  transition:transform .7s cubic-bezier(.76,0,.24,1),opacity .35s ease .1s;
+  pointer-events:none;z-index:5;
+}
+.page.active{transform:translateX(0);opacity:1;pointer-events:auto}
+
+.page-body{overflow-y:auto;padding:56px 64px;background:var(--bg)}
+
+.page-strip{
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;transition:filter .25s;
+  background:var(--pnl);
+}
+.page-strip:hover{filter:brightness(1.5)}
+
+.strip-x{position:absolute;top:22px;left:50%;transform:translateX(-50%);color:rgba(244,241,234,.35);transition:color .2s}
+.page-strip:hover .strip-x{color:rgba(244,241,234,.9)}
+
+.strip-label{
+  font-family:var(--fd);font-weight:500;font-size:10px;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(244,241,234,.4);
+  writing-mode:vertical-rl;transform:rotate(180deg);
+}
+
+/* ── Shared ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--fg2);
+  cursor:pointer;background:none;border:none;font-family:inherit;
+  padding:0;margin-bottom:40px;transition:color .2s;
+}
+.back-btn:hover{color:var(--fg)}
+
+.page-h{margin:0 0 8px;font-family:var(--fd);font-weight:700;font-size:clamp(30px,3.5vw,36px);letter-spacing:-.02em}
+.page-sub{font-size:14px;color:var(--fg3);font-weight:300;margin-bottom:40px}
+
+/* ═══ WORK ═══ */
+.work-cols{display:flex;gap:48px;flex:1;min-height:0}
+.work-list{width:440px;flex-shrink:0;display:flex;flex-direction:column}
+
+.proj{padding:20px 0;border-bottom:1px solid var(--ln);cursor:pointer;transition:background .15s}
+.proj:hover{background:rgba(208,90,36,.03)}
+.proj.sel{background:rgba(208,90,36,.03)}
+.proj.sel .proj-name{color:var(--ac)}
+
+.proj-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.proj-name{font-family:var(--fd);font-weight:600;font-size:16px;transition:color .15s}
+.proj-year{font-size:12px;color:var(--fg3);font-weight:400}
+.proj-desc{font-size:13px;color:var(--fg2);line-height:1.5;margin-bottom:10px}
+.proj-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ptag{font-size:11px;color:var(--fg2);background:var(--sf);padding:3px 10px;border-radius:3px;font-weight:500}
+
+.pv-card{
+  flex:1;position:sticky;top:56px;
+  padding:40px;background:var(--sf);border-left:3px solid var(--ac);
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:320px;max-height:500px;
+}
+.pv-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ac);margin-bottom:16px}
+.pv-name{font-family:var(--fd);font-weight:700;font-size:clamp(22px,2.2vw,32px);line-height:1.1;letter-spacing:-.02em;margin-bottom:6px}
+.pv-sub{font-family:var(--fd);font-weight:400;font-size:13px;color:var(--fg2);font-style:italic;margin-bottom:14px}
+.pv-body{font-size:13px;line-height:1.7;color:var(--fg2);max-width:380px}
+.pv-tech{margin-top:18px;font-size:11px;font-weight:500;letter-spacing:.03em;color:var(--fg3)}
+
+.more-section{margin-top:52px}
+.more-h{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin-bottom:16px}
+.more-row{padding:12px 0;border-bottom:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center}
+.more-name{font-family:var(--fd);font-weight:500;font-size:14px}
+.more-sub{font-size:12px;color:var(--fg2);margin-top:2px}
+.more-type{font-size:10px;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+
+/* ═══ EXPERIENCE ═══ */
+.exp-item{padding:24px 0;border-bottom:1px solid var(--ln);display:grid;grid-template-columns:150px 1fr;gap:32px}
+.exp-date{font-family:var(--fd);font-weight:500;font-size:12px;color:var(--fg3);padding-top:4px}
+.exp-role{font-family:var(--fd);font-weight:700;font-size:17px;margin-bottom:3px}
+.exp-org{font-family:var(--fd);font-size:13px;color:var(--ac);margin-bottom:8px}
+.exp-desc{font-size:13px;line-height:1.65;color:var(--fg2);max-width:500px}
+.exp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+
+.domain-wrap{margin-top:40px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{font-family:var(--fd);font-weight:500;font-size:12px;padding:7px 16px;border:1px solid var(--ln);color:var(--fg2);transition:border-color .2s,color .2s}
+.chip:hover{border-color:var(--ac);color:var(--fg)}
+
+/* ═══ ABOUT ═══ */
+.about-lead{font-family:var(--fd);font-weight:300;font-size:clamp(20px,2.4vw,32px);line-height:1.45;max-width:620px;margin-bottom:48px}
+.about-lead em{color:var(--ac);font-style:italic}
+
+.about-cols{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px}
+.ab-h{font-family:var(--fd);font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin-bottom:14px}
+.ab-item{padding:10px 0;border-bottom:1px solid var(--ln);font-size:13px}
+.ab-main{font-weight:500}
+.ab-sub{font-size:12px;color:var(--fg2);margin-top:2px}
+
+/* ═══ CONTACT ═══ */
+.ct-hero{font-family:var(--fd);font-weight:800;font-size:clamp(34px,4.5vw,60px);line-height:1.08;letter-spacing:-.03em;max-width:520px;margin-bottom:44px}
+.ct-links{display:flex;flex-direction:column;gap:16px}
+.ct-link{display:flex;align-items:center;gap:12px;font-family:var(--fd);font-weight:500;font-size:16px;color:var(--fg2);transition:color .25s}
+.ct-link:hover{color:var(--ac)}
+.ct-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;opacity:.5;min-width:60px}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:900px){
+  html,body{overflow:auto}
+  #base{position:relative;width:100%;height:auto;min-height:55vh;padding:36px 28px}
+  #grid{position:relative;width:100%;height:auto}
+  .pnl{min-height:28vh}
+  body.open #base{left:0;opacity:0;height:0;min-height:0;padding:0;overflow:hidden}
+  body.open #grid{right:0;opacity:0;height:0;overflow:hidden}
+  .page{position:relative;grid-template-columns:1fr 44px;transform:none;opacity:1;display:none}
+  .page.active{display:grid}
+  .page-body{padding:28px 20px}
+  .work-cols{flex-direction:column}
+  .work-list{width:100%}
+  .pv-card{display:none}
+  .exp-item{grid-template-columns:1fr;gap:6px}
+  .about-cols{grid-template-columns:1fr}
+  .logo{font-size:56px}
+}
+
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+
+<!-- ══════════ LEFT ══════════ -->
+<div id="base">
+  <div class="logo">Gg</div>
+  <div class="id-block">
+    <h1 class="name">Gökçe Güler</h1>
+    <div class="role">Full-Stack Software Engineer</div>
+    <p class="tagline">Building the systems behind 8+ SaaS products — from automotive fleets to AI-powered platforms.</p>
+  </div>
+  <div class="social">
+    <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+    <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+    <a href="mailto:gokcenizguler@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
+  </div>
+</div>
+
+<!-- ══════════ PANELS ══════════ -->
+<div id="grid">
+  <div class="pnl p1" onclick="openPage('work')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <div class="pnl-title">Work</div>
+  </div>
+  <div class="pnl p2" onclick="openPage('exp')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <div class="pnl-title">Experience</div>
+  </div>
+  <div class="pnl p3" onclick="openPage('about')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="pnl-title">About</div>
+  </div>
+  <div class="pnl p4" onclick="openPage('contact')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    <div class="pnl-title">Contact</div>
+  </div>
+</div>
+
+<!-- ══════════ WORK ══════════ -->
+<div class="page" id="pg-work">
+  <div class="page-body">
+    <button class="back-btn" onclick="closePage('work')">&#8592; Back</button>
+    <h1 class="page-h">Work</h1>
+    <div class="page-sub">Selected projects across 8+ SaaS products</div>
+    <div class="work-cols">
+      <div class="work-list">
+        <div class="proj sel" data-i="0"><div class="proj-top"><div class="proj-name">Galerion</div><div class="proj-year">2025</div></div><div class="proj-desc">Multi-tenant dealership &amp; operations platform for the automotive industry.</div><div class="proj-tags"><span class="ptag">Django</span><span class="ptag">React</span><span class="ptag">PostgreSQL</span><span class="ptag">Docker</span></div></div>
+        <div class="proj" data-i="1"><div class="proj-top"><div class="proj-name">HasarLink</div><div class="proj-year">2025</div></div><div class="proj-desc">Operations platform for auto damage repair &amp; service centers.</div><div class="proj-tags"><span class="ptag">Django</span><span class="ptag">React</span><span class="ptag">Docker</span><span class="ptag">WebSocket</span></div></div>
+        <div class="proj" data-i="2"><div class="proj-top"><div class="proj-name">Doc AI</div><div class="proj-year">2025</div></div><div class="proj-desc">AI-powered document processing &amp; automatic form filling.</div><div class="proj-tags"><span class="ptag">Gemini API</span><span class="ptag">Celery</span><span class="ptag">Django</span></div></div>
+        <div class="proj" data-i="3"><div class="proj-top"><div class="proj-name">Tazminat Makinesi</div><div class="proj-year">2025</div></div><div class="proj-desc">Actuarial compensation engine — traffic &amp; workplace claims.</div><div class="proj-tags"><span class="ptag">Django</span><span class="ptag">SEO</span><span class="ptag">Solo Build</span></div></div>
+        <div class="proj" data-i="4"><div class="proj-top"><div class="proj-name">MaritimeOS</div><div class="proj-year">Personal</div></div><div class="proj-desc">Domain-driven maritime operations platform.</div><div class="proj-tags"><span class="ptag">DDD</span><span class="ptag">Event Sourcing</span><span class="ptag">Django</span></div></div>
+        <div class="proj" data-i="5"><div class="proj-top"><div class="proj-name">AnısıVar</div><div class="proj-year">Personal</div></div><div class="proj-desc">Real-time audience engagement platform.</div><div class="proj-tags"><span class="ptag">Next.js</span><span class="ptag">Channels</span><span class="ptag">Redis</span></div></div>
+      </div>
+      <div class="pv-card" id="pv">
+        <div class="pv-label" id="pvL">Professional · Everion</div>
+        <div class="pv-name" id="pvN">Galerion</div>
+        <div class="pv-sub" id="pvS">Multi-tenant operations platform for automotive businesses.</div>
+        <div class="pv-body" id="pvB">Primary engineer owning core backend architecture. Multi-tenant with RBAC, vehicle management, CRM, documents, expenses, reporting, and dealer-network modules.</div>
+        <div class="pv-tech" id="pvT">Django · DRF · PostgreSQL · PostGIS · Redis · Celery · React · Docker</div>
+      </div>
+    </div>
+    <div class="more-section">
+      <div class="more-h">More Work</div>
+      <div class="more-row"><div><div class="more-name">QRakter</div><div class="more-sub">Mobile accident reporting, QR-based vehicle &amp; document management</div></div><span class="more-type">React Native · Expo</span></div>
+      <div class="more-row"><div><div class="more-name">Notification Kit</div><div class="more-sub">Open-source Django notification library — SMS, email, push</div></div><span class="more-type">PyPI Package</span></div>
+      <div class="more-row"><div><div class="more-name">Recruitment API</div><div class="more-sub">Production-minded Django REST API — 54 tests, 95% coverage</div></div><span class="more-type">Public · GitHub</span></div>
+    </div>
+  </div>
+  <div class="page-strip" onclick="closePage('work')"><div class="strip-x"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></div><span class="strip-label">Work</span></div>
+</div>
+
+<!-- ══════════ EXPERIENCE ══════════ -->
+<div class="page" id="pg-exp">
+  <div class="page-body">
+    <button class="back-btn" onclick="closePage('exp')">&#8592; Back</button>
+    <h1 class="page-h">Experience</h1>
+    <div class="page-sub">Timeline</div>
+    <div class="exp-item"><div class="exp-date">Apr 2026 — Present</div><div><div class="exp-role">Founding Engineer &amp; Technical Lead</div><div class="exp-org">Everion Consulting</div><div class="exp-desc">Company-wide technical leadership. Owning architecture, production readiness, and cross-product engineering. Coordinating 12 engineers while remaining hands-on across backend, frontend/mobile, DevOps, security, and releases.</div><div class="exp-tags"><span class="ptag">Django</span><span class="ptag">DRF</span><span class="ptag">PostgreSQL</span><span class="ptag">React</span><span class="ptag">React Native</span><span class="ptag">Docker</span></div></div></div>
+    <div class="exp-item"><div class="exp-date">Mar 2025 — Apr 2026</div><div><div class="exp-role">Full-Stack &amp; Solution Engineer</div><div class="exp-org">Everion Consulting</div><div class="exp-desc">Built and shipped features across 8+ SaaS products in automotive, insurance, legal, HR, CRM, and AI domains.</div><div class="exp-tags"><span class="ptag">Python</span><span class="ptag">Django</span><span class="ptag">PostgreSQL</span><span class="ptag">Redis</span><span class="ptag">Celery</span></div></div></div>
+    <div class="exp-item"><div class="exp-date">Dec 2024 — Mar 2025</div><div><div class="exp-role">Software Engineer</div><div class="exp-org">Ekşioğlu Hukuk</div><div class="exp-desc">Backend and frontend for internal legal software — case management, insurance filings, collections, dashboards.</div><div class="exp-tags"><span class="ptag">Django</span><span class="ptag">React</span><span class="ptag">PostgreSQL</span></div></div></div>
+    <div class="exp-item"><div class="exp-date">Sep 2023 — Feb 2024</div><div><div class="exp-role">Business Analyst Intern</div><div class="exp-org">Skyland A.Ş.</div><div class="exp-desc">Business analysis documents, user scenarios, process flows, requirement analysis.</div></div></div>
+    <div class="exp-item"><div class="exp-date">Jul 2023 — Sep 2023</div><div><div class="exp-role">Software Engineering Intern</div><div class="exp-org">Ziraat Teknoloji</div><div class="exp-desc">Card Systems team — enterprise software development.</div><div class="exp-tags"><span class="ptag">ASP.NET</span><span class="ptag">C#</span><span class="ptag">MSSQL</span></div></div></div>
+    <div class="domain-wrap"><div class="more-h">Domains</div><div class="chips"><span class="chip">Automotive</span><span class="chip">Insurance</span><span class="chip">Legal / Actuarial</span><span class="chip">HR &amp; Recruitment</span><span class="chip">CRM</span><span class="chip">AI / ML</span><span class="chip">Maritime</span><span class="chip">Event Platforms</span></div></div>
+  </div>
+  <div class="page-strip" onclick="closePage('exp')"><div class="strip-x"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></div><span class="strip-label">Experience</span></div>
+</div>
+
+<!-- ══════════ ABOUT ══════════ -->
+<div class="page" id="pg-about">
+  <div class="page-body">
+    <button class="back-btn" onclick="closePage('about')">&#8592; Back</button>
+    <h1 class="page-h">About</h1>
+    <div class="page-sub"></div>
+    <div class="about-lead">Full-stack software engineer focused on turning <em>complex operational domains</em> into well-architected systems — from maritime logistics to insurance claims processing.</div>
+    <div class="about-cols">
+      <div><div class="ab-h">Education</div><div class="ab-item"><div class="ab-main">Bahçeşehir Üniversitesi</div><div class="ab-sub">B.Sc. Software Engineering (English) · 2024 · 100% Scholarship</div></div></div>
+      <div><div class="ab-h">Certifications</div><div class="ab-item"><div class="ab-main">Salesforce Certified Administrator</div></div><div class="ab-item"><div class="ab-main">Salesforce Agentforce Specialist</div></div><div class="ab-item"><div class="ab-main">IBM Data Analyst Professional</div></div><div class="ab-item"><div class="ab-main">Miuul Data Scientist Path</div></div></div>
+    </div>
+    <div style="margin-top:44px"><div class="ab-h">Core Stack</div><div class="chips"><span class="chip">Python</span><span class="chip">Django / DRF</span><span class="chip">PostgreSQL</span><span class="chip">Redis</span><span class="chip">Celery</span><span class="chip">React</span><span class="chip">React Native</span><span class="chip">Next.js</span><span class="chip">TypeScript</span><span class="chip">Docker</span><span class="chip">Nginx</span><span class="chip">Git</span></div></div>
+  </div>
+  <div class="page-strip" onclick="closePage('about')"><div class="strip-x"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></div><span class="strip-label">About</span></div>
+</div>
+
+<!-- ══════════ CONTACT ══════════ -->
+<div class="page" id="pg-contact">
+  <div class="page-body" style="display:flex;flex-direction:column;justify-content:center">
+    <button class="back-btn" onclick="closePage('contact')" style="position:absolute;top:56px;left:64px">&#8592; Back</button>
+    <div class="ct-hero">Have something<br>worth building?</div>
+    <div class="ct-links">
+      <a class="ct-link" href="mailto:gokcenizguler@gmail.com"><span class="ct-lbl">Email</span>gokcenizguler@gmail.com</a>
+      <a class="ct-link" href="#"><span class="ct-lbl">LinkedIn</span>linkedin.com/in/gokceguler</a>
+      <a class="ct-link" href="#"><span class="ct-lbl">GitHub</span>github.com/gokceguler</a>
+    </div>
+  </div>
+  <div class="page-strip" onclick="closePage('contact')"><div class="strip-x"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></div><span class="strip-label">Contact</span></div>
+</div>
+
+<script>
+var P=[
+  {n:'Galerion',s:'Multi-tenant operations platform for automotive businesses.',b:'Primary engineer owning core backend architecture. Multi-tenant with RBAC, vehicle management, CRM, documents, expenses, reporting, and dealer-network modules.',t:'Django \xb7 DRF \xb7 PostgreSQL \xb7 PostGIS \xb7 Redis \xb7 Celery \xb7 React \xb7 Docker',l:'Professional \xb7 Everion'},
+  {n:'HasarLink',s:'From product workflows to production infrastructure.',b:'Led platform migration from DigitalOcean to dedicated VM. Designed 11-container Docker Compose architecture: Django ASGI, Celery workers, Redis, PostgreSQL, Nginx with WebSocket support.',t:'Django \xb7 DRF \xb7 PostgreSQL \xb7 React \xb7 Vite \xb7 Firebase/Web Push \xb7 Docker',l:'Professional \xb7 Everion'},
+  {n:'Doc AI',s:'Turning unstructured documents into structured product data.',b:'Independently designed and built end-to-end. AI-powered ingestion, classification, multi-file analysis, structured JSON extraction via Google Gemini API.',t:'Django \xb7 DRF \xb7 Celery \xb7 Redis \xb7 Google Gemini API \xb7 PostgreSQL',l:'Professional \xb7 Everion'},
+  {n:'Tazminat Makinesi',s:'An unfamiliar domain, modeled from actuarial tables into software.',b:'Independently built end-to-end — backend architecture, actuarial data modeling, deployment, technical SEO. Reconstructed calculation logic using TRH-2010 and PMF-1931 life tables.',t:'Python \xb7 Django',l:'Professional \xb7 Everion'},
+  {n:'MaritimeOS',s:'Maritime operations, modeled as software.',b:'A domain-driven system with workflow orchestration, business rule engines, and event-sourced state management.',t:'Django \xb7 DRF \xb7 PostgreSQL \xb7 Celery \xb7 Redis \xb7 React',l:'Personal Product'},
+  {n:'AnısıVar',s:'From idea to product experience.',b:'Real-time audience engagement platform. WebSocket infrastructure, Django Channels, Celery, Redis, AI-powered content generation.',t:'Django \xb7 Next.js \xb7 Celery \xb7 Redis \xb7 Channels \xb7 R2',l:'Personal Product'}
+];
+
+var active=null;
+var map={work:'pg-work',exp:'pg-exp',about:'pg-about',contact:'pg-contact'};
+
+function openPage(id){
+  if(active)return;
+  active=id;
+  document.body.classList.add('open');
+  var pg=document.getElementById(map[id]);
+  setTimeout(function(){
+    pg.classList.add('active');
+    var body=pg.querySelector('.page-body');
+    if(body)body.scrollTop=0;
+  },100);
+}
+
+function closePage(id){
+  var pg=document.getElementById(map[id]);
+  pg.classList.remove('active');
+  setTimeout(function(){
+    document.body.classList.remove('open');
+    active=null;
+  },400);
+}
+
+document.querySelectorAll('.proj').forEach(function(el){
+  el.addEventListener('mouseenter',function(){
+    var i=parseInt(this.dataset.i),p=P[i];
+    if(!p)return;
+    document.getElementById('pvL').textContent=p.l;
+    document.getElementById('pvN').textContent=p.n;
+    document.getElementById('pvS').textContent=p.s;
+    document.getElementById('pvB').textContent=p.b;
+    document.getElementById('pvT').textContent=p.t;
+    document.querySelectorAll('.proj').forEach(function(x){x.classList.remove('sel')});
+    this.classList.add('sel');
+  });
+});
+</script>
