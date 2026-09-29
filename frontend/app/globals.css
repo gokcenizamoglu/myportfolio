@@ -193,3 +193,25 @@
   .gg-grid{grid-template-columns:1fr;grid-template-rows:repeat(4,180px)}
 }
 @media(prefers-reduced-motion:reduce){.gg-base,.gg-grid,.page{transition-duration:.01ms!important}}
+
+/* ═══ CV IMPORT ═══ */
+.cv-upload{background:#fff;border:1px solid #d8cfc1;padding:20px;display:grid;gap:12px;max-width:640px}
+.cv-upload label{display:flex;gap:10px;align-items:center;font-size:13px}
+.cv-hint{font-size:12px;color:#837d74;margin:0}
+.cv-review{margin-top:28px;display:grid;gap:28px}
+.cv-group-h{font:600 15px var(--font-serif,Georgia);margin:0 0 12px;color:#35322d}
+.cv-card{background:#fff;border:1px solid #d8cfc1;border-left:3px solid #ccc;margin-bottom:12px;padding:16px}
+.cv-card.skip{opacity:.5}
+.cv-card.accept{border-left-color:#2f855a}
+.cv-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cv-card-actions{margin-left:auto;display:flex;gap:6px}
+.cv-badge{font-size:10px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:3px}
+.cv-create{background:#e6f0e7;color:#2f855a}
+.cv-update{background:#fdf0d5;color:#9a6a00}
+.cv-fields{display:grid;gap:14px}
+.cv-field-key{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#777;margin-bottom:4px;display:flex;gap:8px;align-items:center}
+.cv-flag{font-size:9px;background:#fde2e1;color:#9f2f21;padding:2px 6px;border-radius:3px;text-transform:none;letter-spacing:0}
+.cv-old{background:#fdecec;color:#9f2f21;padding:6px 10px;border-radius:3px;font-size:13px;text-decoration:line-through;margin-bottom:4px;white-space:pre-wrap}
+.cv-new{width:100%;background:#eaf7ee;border:1px solid #b7e0c4;border-radius:3px;padding:8px 10px;font:inherit;font-size:13px;min-height:44px;resize:vertical}
+.cv-apply-bar{display:flex;align-items:center;gap:16px;padding-top:8px}
+.cv-orphan{font-size:13px;color:#7a736a;background:#fff;border:1px dashed #d8cfc1;padding:10px 12px;border-radius:3px;margin-bottom:8px}
