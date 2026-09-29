@@ -262,12 +262,10 @@ func Seed(db *sqlx.DB) error {
 	}
 
 	groups := []row{
-		{"backend", map[string]any{"group_tr": "Backend", "group_en": "Backend", "items": []string{"Python", "Django", "Django REST Framework", "REST API", "Celery", "C#", "ASP.NET", "Entity Framework"}}},
-		{"frontend-mobile", map[string]any{"group_tr": "Frontend & Mobil", "group_en": "Frontend & Mobile", "items": []string{"React", "React Native", "Next.js", "JavaScript", "TypeScript", "Expo"}}},
-		{"data", map[string]any{"group_tr": "Veritabanı & Cache", "group_en": "Database & Cache", "items": []string{"PostgreSQL", "PostGIS", "Redis", "MSSQL"}}},
-		{"devops", map[string]any{"group_tr": "DevOps & Altyapı", "group_en": "DevOps & Infrastructure", "items": []string{"Docker", "Docker Compose", "Nginx", "CI/CD", "GitHub Actions", "Linux", "SSH Hardening", "Production Deployment"}}},
-		{"cloud", map[string]any{"group_tr": "Cloud & Servisler", "group_en": "Cloud & Services", "items": []string{"DigitalOcean", "AWS S3", "Firebase", "Google Gemini API", "iyzico"}}},
-		{"product", map[string]any{"group_tr": "Ürün", "group_en": "Product", "items": []string{"Ürün Yönetimi", "Gereksinim Analizi", "Müşteri İletişimi", "Ekip Koordinasyonu", "Sprint Planlama", "Agile"}}},
+		{"backend-api", map[string]any{"group_tr": "Backend & API", "group_en": "Backend & API", "items": []string{"Python", "Django", "Django REST Framework", "Go", "C#", "ASP.NET Core", "Celery"}}},
+		{"frontend-mobile", map[string]any{"group_tr": "Frontend & Mobil", "group_en": "Frontend & Mobile", "items": []string{"TypeScript", "React", "Next.js", "React Native", "Expo", "Tailwind CSS"}}},
+		{"data-architecture", map[string]any{"group_tr": "Veri & Mimari", "group_en": "Data & Architecture", "items": []string{"PostgreSQL", "PostGIS", "Redis", "MSSQL", "Multi-Tenancy", "RBAC", "Event-Driven Workflows"}}},
+		{"platform-cloud", map[string]any{"group_tr": "Platform & Bulut", "group_en": "Platform & Cloud", "items": []string{"Docker", "GitHub Actions", "Nginx", "Linux", "DigitalOcean", "AWS S3", "Firebase"}}},
 	}
 	for i, g := range groups {
 		if err := add("skills", g.slug, i+1, g.data); err != nil {

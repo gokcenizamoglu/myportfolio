@@ -91,6 +91,7 @@
 .proj-card[data-interactive="true"]{cursor:pointer}
 .proj-card[data-interactive="true"]:hover .proj-more{opacity:1;transform:translateX(0)}
 .proj-star{color:var(--amber);margin-left:8px;font-size:11px}
+.proj-oss{display:inline-block;margin-left:9px;padding:2px 6px;border:1px solid color-mix(in srgb,var(--green) 35%,transparent);border-radius:20px;color:var(--green);font-size:9px;letter-spacing:.04em;text-transform:uppercase;vertical-align:1px}
 .proj-more{font-family:var(--fd);font-weight:600;font-size:12px;color:var(--green);letter-spacing:.03em;margin-top:14px;opacity:.55;transform:translateX(-4px);transition:opacity .2s,transform .2s}
 
 /* ═══ PROJECT DETAIL MODAL ═══ */
@@ -108,8 +109,12 @@
 .proj-modal-role .proj-modal-k{display:inline}
 .proj-modal-outcome{background:color-mix(in srgb,var(--green) 6%,transparent);border-left:3px solid var(--green);padding:18px 20px;border-radius:0 4px 4px 0}
 .proj-modal-outcome>p{color:var(--fg)}
-.proj-modal-visit{display:inline-block;margin-top:28px;font-family:var(--fd);font-weight:600;font-size:14px;color:#fff;background:var(--green);padding:12px 22px;border-radius:4px;transition:opacity .2s}
+.proj-modal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.proj-modal-visit{display:inline-flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:600;font-size:14px;color:#fff;background:var(--green);padding:12px 22px;border:1px solid var(--green);border-radius:4px;transition:opacity .2s,background .2s,color .2s}
 .proj-modal-visit:hover{opacity:.88}
+.proj-modal-source{color:var(--fg);background:transparent;border-color:var(--ln)}
+.proj-modal-source:hover{color:var(--green);border-color:var(--green);opacity:1}
+.proj-modal-source svg{width:17px;height:17px}
 
 /* ═══ EXPERIENCE ═══ */
 .exp-item{padding:26px 0 26px 20px;border-bottom:1px solid var(--ln);border-left:3px solid transparent;display:grid;grid-template-columns:160px 1fr;gap:32px;transition:border-color .2s,background .2s}
@@ -127,14 +132,15 @@
 .hand-note{font-family:var(--fb);font-style:italic;font-size:14px;color:var(--navy);margin-bottom:40px;display:block}
 .matrix-card{border:1px solid var(--ln);padding:30px 32px;margin:28px 0 40px}
 .matrix-label{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);margin-bottom:18px}
-.matrix-row{padding:12px 0;border-top:1px solid var(--ln)}
-.matrix-row:first-of-type{border-top:0}
+.matrix-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 34px}
+.matrix-row{padding:0}
 .matrix-key{font-family:var(--fd);font-weight:600;font-size:12px;color:var(--fg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
 .matrix-val{font-family:var(--fb);font-size:14px;color:var(--fg2);line-height:1.6}
 .about-cols{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:8px}
 .ab-h{font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);margin-bottom:14px}
 .ab-item{padding:10px 0;border-bottom:1px solid var(--ln);font-size:13px}
 .ab-main{font-family:var(--fd);font-weight:600;color:var(--fg)}
+.cert-link{margin-left:8px;color:var(--navy);font-size:11px;white-space:nowrap}
 .ab-sub{font-family:var(--fb);font-size:12px;color:var(--fg2);margin-top:2px}
 .panel-subsection{margin-top:48px;padding-top:36px;border-top:1px solid var(--ln)}
 .document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:40px}
@@ -185,6 +191,7 @@
   .work-grid{grid-template-columns:1fr}
   .exp-item{grid-template-columns:1fr;gap:6px}
   .about-cols{grid-template-columns:1fr}
+  .matrix-groups{grid-template-columns:1fr}
   .proj-modal{padding:0}
   .proj-modal-card{padding:44px 24px 32px;max-height:100vh;height:100%;border-radius:0;width:100%}
   .document-grid{grid-template-columns:1fr}

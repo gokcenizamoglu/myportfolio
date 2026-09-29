@@ -8,8 +8,8 @@ import type {PortfolioData,Project} from "@/lib/types";
 type Locale="tr"|"en";
 type Section="about"|"experience"|"work"|"contact";
 const copy={
-  tr:{nav:["Hakkımda","Deneyim","Projeler","İletişim"],about:"Teknik yaklaşımım",work:"Geliştirdiğim seçkin sistemler",workNote:"Karmaşık iş akışlarını sade, güvenilir ürünlere dönüştürdüğüm bazı çalışmalar.",experience:"Mühendislik deneyimlerim",education:"Eğitim",skills:"Teknik araç kutum",certs:"Sertifikalar",library:"Ekler",libraryNote:"CV’lerimi, sertifikalarımı ve paylaşmak istediğim diğer belgeleri buradan inceleyebilirsin.",contact:"Gelin birlikte tasarlayalım",open:"Aç / indir",close:"Kapat",present:"Şu an",current:"Devam ediyor",apiOffline:"Portfolyo API’sine ulaşılamıyor.",apiHelp:"Go API’yi başlatınca içerikler burada görünecek.",detail:"Detayları gör",role:"Rol",overview:"Özet",outcome:"Sonuç",stack:"Teknolojiler",visit:"Canlı siteyi ziyaret et"},
-  en:{nav:["About","Experience","Projects","Contact"],about:"My technical approach",work:"Selected systems I've built",workNote:"A few systems where I turned complicated operations into calm, dependable products.",experience:"Engineering experience",education:"Education",skills:"My toolbox",certs:"Certifications",library:"Downloads",libraryNote:"My résumés, certificates and other useful documents live here.",contact:"Let's build something together",open:"Open / download",close:"Close",present:"Present",current:"In progress",apiOffline:"The portfolio API is offline.",apiHelp:"Start the Go API and the content will appear here.",detail:"View details",role:"Role",overview:"Overview",outcome:"Outcome",stack:"Tech stack",visit:"Visit the live site"}
+  tr:{nav:["Hakkımda","Deneyim","Projeler","İletişim"],about:"Teknik yaklaşımım",work:"Geliştirdiğim seçkin sistemler",workNote:"Karmaşık iş akışlarını sade, güvenilir ürünlere dönüştürdüğüm bazı çalışmalar.",experience:"Mühendislik deneyimlerim",education:"Eğitim",skills:"Teknik odağım",certs:"Sertifikalar",library:"Özgeçmiş",libraryNote:"Türkçe veya İngilizce özgeçmişimi buradan inceleyebilir ve indirebilirsin.",contact:"Gelin birlikte tasarlayalım",open:"Aç / indir",close:"Kapat",present:"Şu an",current:"Devam ediyor",apiOffline:"Portfolyo API’sine ulaşılamıyor.",apiHelp:"Go API’yi başlatınca içerikler burada görünecek.",detail:"Detayları gör",role:"Rol",problem:"Problem",overview:"Katkım",outcome:"Sonuç",stack:"Teknolojiler",visit:"Ürün sitesini ziyaret et",source:"GitHub’da incele",openSource:"Açık kaynak"},
+  en:{nav:["About","Experience","Projects","Contact"],about:"My technical approach",work:"Selected systems I've built",workNote:"A few systems where I turned complicated operations into calm, dependable products.",experience:"Engineering experience",education:"Education",skills:"Technical focus",certs:"Certifications",library:"Résumé",libraryNote:"View or download my résumé in Turkish or English.",contact:"Let's build something together",open:"Open / download",close:"Close",present:"Present",current:"In progress",apiOffline:"The portfolio API is offline.",apiHelp:"Start the Go API and the content will appear here.",detail:"View details",role:"Role",problem:"Problem",overview:"My contribution",outcome:"Outcome",stack:"Tech stack",visit:"Visit product site",source:"View on GitHub",openSource:"Open source"}
 };
 
 function localized(item:Record<string,unknown>,key:string,locale:Locale){return String(item[`${key}_${locale}`]??item[key]??"")}
@@ -57,6 +57,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
     {kind:"contact",label:t.nav[3]},
   ];
   const projects=d.projects||[];
+  const cvDocuments=(d.documents||[]).filter(document=>document.category==="cv");
   const emailLink=d.socials.find(link=>link.url.startsWith("mailto:"));
   const otherLinks=d.socials.filter(link=>link!==emailLink);
   const openSection=(kind:Section,el:HTMLButtonElement|null)=>{lastTileRef.current=el;setActiveSection(kind)};
@@ -93,10 +94,10 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
         <div className="page-sub">{t.workNote}</div>
         <div className="work-grid">
           {projects.map((project,index)=>{
-            const hasDetail=Boolean(localized(project,"body",locale)||localized(project,"outcome",locale)||project.live_url);
+            const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localized(project,"outcome",locale)||project.live_url||project.github_url);
             return <motion.button {...(activeSection==="work"?cardMotion(index):{})} type="button" className="proj-card" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
               <span className="proj-card-inner">
-                <span className="proj-tag">{String(index+1).padStart(2,"0")}{project.featured&&<span className="proj-star" aria-label="featured">★</span>}</span>
+                <span className="proj-tag">{String(index+1).padStart(2,"0")}{project.featured&&<span className="proj-star" aria-label="featured">★</span>}{(project.open_source||project.github_url)&&<span className="proj-oss">{t.openSource}</span>}</span>
                 <span className="proj-name">{localized(project,"name",locale)}</span>
                 <span className="proj-desc">{localized(project,"description",locale)}</span>
                 <span className="proj-meta">{[project.category,project.employer,project.year].filter(Boolean).join(" · ")}</span>
@@ -137,7 +138,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
         {settingsText("availability")&&<span className="hand-note">{settingsText("availability")}</span>}
         {d.skills.length>0&&<div className="matrix-card">
           <div className="matrix-label">{t.skills}</div>
-          {d.skills.map(group=><div className="matrix-row" key={group.id}><div className="matrix-key">{localized(group,"group",locale)||group.group}</div><div className="matrix-val">{group.items?.join(", ")}</div></div>)}
+          <div className="matrix-groups">{d.skills.map(group=><div className="matrix-row" key={group.id}><div className="matrix-key">{localized(group,"group",locale)||group.group}</div><div className="matrix-val">{group.items?.join(", ")}</div></div>)}</div>
         </div>}
         <div className="about-cols">
           <div>
@@ -146,13 +147,13 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
           </div>
           <div>
             <div className="ab-h">{t.certs}</div>
-            {d.certifications.map(cert=><div className="ab-item" key={cert.id}><div className="ab-main">{localized(cert,"name",locale)}{typeof cert.attachment_url==="string"&&cert.attachment_url?<a href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer" style={{marginLeft:8,color:"var(--navy)",fontSize:11}}>PDF ↗</a>:null}</div><div className="ab-sub">{cert.issuer} {cert.year}</div></div>)}
+            {d.certifications.map(cert=><div className="ab-item" key={cert.id}><div className="ab-main">{localized(cert,"name",locale)}{typeof cert.attachment_url==="string"&&cert.attachment_url?<a className="cert-link" href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer">PDF ↗</a>:null}</div><div className="ab-sub">{cert.issuer} {cert.year}</div></div>)}
           </div>
         </div>
-        {(d.documents&&d.documents.length>0)&&<div className="panel-subsection">
+        {cvDocuments.length>0&&<div className="panel-subsection">
           <div className="ab-h">{t.library}</div>
           <p className="long-copy" style={{marginTop:8}}>{t.libraryNote}</p>
-          <div className="document-grid">{d.documents.map(document=><a className="document-card" href={assetUrl(document.file_url)} target="_blank" rel="noreferrer" key={document.id}><span className="file-type">{document.category?.toUpperCase()||"PDF"}</span><h3>{localized(document,"title",locale)}</h3><p>{localized(document,"description",locale)}</p><strong>{t.open} ↗</strong></a>)}</div>
+          <div className="document-grid">{cvDocuments.map(document=><a className="document-card" href={assetUrl(document.file_url)} target="_blank" rel="noreferrer" key={document.id}><span className="file-type">CV · PDF</span><h3>{localized(document,"title",locale)}</h3><p>{localized(document,"description",locale)}</p><strong>{t.open} ↗</strong></a>)}</div>
         </div>}
       </div>
       <button type="button" className="page-strip strip-about" onClick={()=>setActiveSection(null)} aria-label={t.close}><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[0]}</span></button>
@@ -172,6 +173,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
       {activeProject&&(()=>{
         const p=activeProject;
         const body=localized(p,"body",locale);
+        const problem=localized(p,"problem",locale);
         const outcome=localized(p,"outcome",locale);
         const role=localized(p,"role",locale);
         return <motion.div className="proj-modal" role="dialog" aria-modal="true" aria-label={localized(p,"name",locale)} initial={reduce?{opacity:0}:{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.2}} onClick={()=>setActiveProject(null)}>
@@ -181,10 +183,14 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
             <h2 className="proj-modal-title">{localized(p,"name",locale)}</h2>
             {role&&<p className="proj-modal-role"><span className="proj-modal-k">{t.role}</span>{role}</p>}
             <p className="proj-modal-desc">{localized(p,"description",locale)}</p>
+            {problem&&<div className="proj-modal-block"><div className="proj-modal-k">{t.problem}</div><p>{problem}</p></div>}
             {body&&<div className="proj-modal-block"><div className="proj-modal-k">{t.overview}</div><p>{body}</p></div>}
             {outcome&&<div className="proj-modal-block proj-modal-outcome"><div className="proj-modal-k">{t.outcome}</div><p>{outcome}</p></div>}
             {p.tech_stack&&p.tech_stack.length>0&&<div className="proj-modal-block"><div className="proj-modal-k">{t.stack}</div><div className="proj-tags">{p.tech_stack.map(tag=><span className="ptag" key={tag}>{tag}</span>)}</div></div>}
-            {p.live_url&&<a className="proj-modal-visit" href={p.live_url} target="_blank" rel="noreferrer">{t.visit} ↗</a>}
+            {(p.live_url||p.github_url)&&<div className="proj-modal-actions">
+              {p.live_url&&<a className="proj-modal-visit" href={p.live_url} target="_blank" rel="noreferrer"><span aria-hidden="true">◎</span>{t.visit} ↗</a>}
+              {p.github_url&&<a className="proj-modal-visit proj-modal-source" href={p.github_url} target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.88c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.55 9.55 0 0 1 12 6.82a9.5 9.5 0 0 1 2.5.34c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.76c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>{t.source}</a>}
+            </div>}
           </motion.div>
         </motion.div>;
       })()}

@@ -1,5 +1,5 @@
 export type AnyItem = {id:number;slug:string;sort_order:number;visible:boolean;[key:string]:unknown};
-export type Project = AnyItem & {name:string;description:string;body:string;role?:string;outcome?:string;tech_stack:string[];domains?:string[];category:string;employer:string;year:string;live_url?:string;featured?:boolean};
+export type Project = AnyItem & {name:string;description:string;problem?:string;body:string;role?:string;outcome?:string;tech_stack:string[];domains?:string[];category:string;employer:string;year:string;live_url?:string;github_url?:string;open_source?:boolean;featured?:boolean};
 export type Experience = AnyItem & {role:string;company:string;description:string;tech_stack:string[];start_date:string;end_date:string};
 export type Education = AnyItem & {school:string;degree:string;detail:string;start_date:string;end_date:string};
 export type Certification = AnyItem & {name:string;issuer:string;year:string};
