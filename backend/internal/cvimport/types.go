@@ -45,8 +45,9 @@ type Orphan struct {
 
 // ImportDraft is the full, unwritten result returned to the browser.
 type ImportDraft struct {
-	Changes []ProposedChange `json:"changes"`
-	Orphans []Orphan         `json:"orphans"`
+	Changes  []ProposedChange `json:"changes"`
+	Orphans  []Orphan         `json:"orphans"`
+	Settings []FieldDiff      `json:"settings"`
 }
 
 // Extractor turns a CV PDF into structured Proposals.
@@ -75,4 +76,5 @@ var bilingualKeys = map[string][]string{
 	"certifications": {"name"},
 	"skills":         {"group"},
 	"projects":       {"name", "description", "body"},
+	"settings":       {"about_lead", "about_body", "tagline"},
 }

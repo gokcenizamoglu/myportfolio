@@ -202,6 +202,7 @@
 .cv-group-h{font:600 15px var(--font-serif,Georgia);margin:0 0 12px;color:#35322d}
 .cv-card{background:#fff;border:1px solid #d8cfc1;border-left:3px solid #ccc;margin-bottom:12px;padding:16px}
 .cv-card.skip{opacity:.5}
+.cv-card.pending{border-left-color:#ccc}
 .cv-card.accept{border-left-color:#2f855a}
 .cv-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .cv-card-actions{margin-left:auto;display:flex;gap:6px}
@@ -213,8 +214,18 @@
 .cv-flag{font-size:9px;background:#fde2e1;color:#9f2f21;padding:2px 6px;border-radius:3px;text-transform:none;letter-spacing:0}
 .cv-old{background:#fdecec;color:#9f2f21;padding:6px 10px;border-radius:3px;font-size:13px;text-decoration:line-through;margin-bottom:4px;white-space:pre-wrap}
 .cv-new{width:100%;background:#eaf7ee;border:1px solid #b7e0c4;border-radius:3px;padding:8px 10px;font:inherit;font-size:13px;min-height:44px;resize:vertical}
-.cv-apply-bar{display:flex;align-items:center;gap:16px;padding-top:8px}
-.cv-orphan{font-size:13px;color:#7a736a;background:#fff;border:1px dashed #d8cfc1;padding:10px 12px;border-radius:3px;margin-bottom:8px}
+.cv-apply-bar{position:sticky;top:12px;z-index:10;display:flex;align-items:center;gap:16px;padding:14px 16px;background:#fff;border:1px solid #d8cfc1;box-shadow:0 5px 18px rgba(41,39,35,.09)}
+.cv-selection-summary{display:grid;gap:2px;min-width:190px;font-size:13px;color:#35322d}
+.cv-selection-summary span{font-size:11px;color:#7a736a}
+.cv-orphan-hint{font-size:12px;color:#7a736a;margin:-4px 0 10px}
+.cv-orphan{font-size:13px;color:#7a736a;background:#fff;border:1px dashed #d8cfc1;padding:12px;border-radius:3px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.cv-orphan.delete{border-color:#c98278;background:#fff8f7}
+.cv-orphan.done{opacity:.65}
+.cv-orphan small{display:block;margin-top:4px;color:#999}
+.cv-orphan-kind{background:#eee9e1;color:#6f685f;margin-right:6px}
 
 .cv-card.done{border-left-color:#2f855a;opacity:.7}
 .cv-done-tag{background:#e6f0e7;color:#2f855a}
+.cv-accepted-tag{background:#e6f0e7;color:#2f855a}
+.cv-skipped-tag{background:#fdecec;color:#9f2f21}
+.cv-pending-tag{background:#eee9e1;color:#6f685f}

@@ -78,7 +78,12 @@ func (h *CVImportHandler) Import(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadGateway, "CV extraction failed: "+err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, cvimport.BuildDraft(existing, proposals, lang))
+	settings, err := h.store.AllSettings()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load existing settings")
+		return
+	}
+	writeJSON(w, http.StatusOK, cvimport.BuildDraft(existing, settings, proposals, lang))
 }
 
 // existingSummary is a compact JSON of current content passed to the model for

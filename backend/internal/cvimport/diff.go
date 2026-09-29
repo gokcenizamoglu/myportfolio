@@ -9,7 +9,7 @@ import (
 
 // BuildDraft matches each proposal against existing items of the same kind and
 // produces the unwritten draft. Matching is by a normalized per-kind key.
-func BuildDraft(existing map[string][]model.ContentItem, p Proposals, lang string) ImportDraft {
+func BuildDraft(existing map[string][]model.ContentItem, settings map[string]string, p Proposals, lang string) ImportDraft {
 	byKind := map[string][]map[string]any{
 		"experiences":    p.Experiences,
 		"education":      p.Education,
@@ -17,7 +17,7 @@ func BuildDraft(existing map[string][]model.ContentItem, p Proposals, lang strin
 		"skills":         p.Skills,
 		"projects":       p.Projects,
 	}
-	draft := ImportDraft{Changes: []ProposedChange{}, Orphans: []Orphan{}}
+	draft := ImportDraft{Changes: []ProposedChange{}, Orphans: []Orphan{}, Settings: []FieldDiff{}}
 
 	for _, kind := range kindsInScope {
 		proposals := byKind[kind]
@@ -33,6 +33,9 @@ func BuildDraft(existing map[string][]model.ContentItem, p Proposals, lang strin
 				change.Slug = slugForExisting(existing[kind], id)
 				change.FieldDiffs = diffFields(kind, dataByID[id], prop, lang)
 				matched[id] = true
+				if !hasChangedField(change.FieldDiffs) {
+					continue
+				}
 			} else {
 				change.Action = "create"
 				change.Slug = slugify(firstNonEmpty(prop, matchFields[kind], lang))
@@ -51,7 +54,25 @@ func BuildDraft(existing map[string][]model.ContentItem, p Proposals, lang strin
 			})
 		}
 	}
+	settingsAny := make(map[string]any, len(settings))
+	for key, value := range settings {
+		settingsAny[key] = value
+	}
+	for _, diff := range diffFields("settings", settingsAny, p.Settings, lang) {
+		if diff.Changed {
+			draft.Settings = append(draft.Settings, diff)
+		}
+	}
 	return draft
+}
+
+func hasChangedField(diffs []FieldDiff) bool {
+	for _, diff := range diffs {
+		if diff.Changed {
+			return true
+		}
+	}
+	return false
 }
 
 func existingIndex(items []model.ContentItem, kind, lang string) (map[string]int64, map[int64]map[string]any) {

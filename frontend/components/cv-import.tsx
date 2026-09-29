@@ -6,8 +6,9 @@ type ApiRequest=(path:string,init?:RequestInit)=>Promise<any>;
 type FieldDiff={field:string;old:string;new:string;auto_translated:boolean;changed:boolean};
 type Change={kind:string;action:"create"|"update";matched_id?:number;slug:string;data:Record<string,unknown>;field_diffs:FieldDiff[]};
 type Orphan={kind:string;id:number;slug:string;label:string};
-type Draft={changes:Change[];orphans:Orphan[]};
+type Draft={changes:Change[];orphans:Orphan[];settings?:FieldDiff[]};
 const kindLabel:Record<string,string>={experiences:"Deneyim",education:"Eğitim",certifications:"Sertifikalar",skills:"Yetenekler",projects:"Projeler"};
+const settingLabel:Record<string,string>={tagline_tr:"Ana mesaj — Türkçe",tagline_en:"Ana mesaj — English",about_lead_tr:"Hakkımda giriş — Türkçe",about_lead_en:"Hakkımda giriş — English",about_body_tr:"Hakkımda metni — Türkçe",about_body_en:"Hakkımda metni — English"};
 
 export default function CvImport({request}:{request:ApiRequest}){
   const [lang,setLang]=useState<"tr"|"en">("tr");
@@ -40,7 +41,8 @@ export default function CvImport({request}:{request:ApiRequest}){
   </div>;
 }
 
-type Decision="accept"|"skip";
+type Decision="pending"|"accept"|"skip";
+type OrphanDecision="keep"|"delete";
 type Existing={id:number;slug:string;data:Record<string,unknown>;sort_order:number;visible:boolean};
 type Failure={slug:string;message:string};
 
@@ -53,10 +55,15 @@ function coerce(field:string,value:string,original:unknown):unknown{
 }
 
 function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
-  const [decisions,setDecisions]=useState<Record<number,Decision>>(()=>Object.fromEntries(draft.changes.map((_,i)=>[i,"accept"])));
+  const settingDiffs=draft.settings??[];
+  const [decisions,setDecisions]=useState<Record<number,Decision>>(()=>Object.fromEntries(draft.changes.map((_,i)=>[i,"pending"])));
+  const [orphanDecisions,setOrphanDecisions]=useState<Record<number,OrphanDecision>>(()=>Object.fromEntries(draft.orphans.map((_,i)=>[i,"keep"])));
+  const [settingDecisions,setSettingDecisions]=useState<Record<number,Decision>>(()=>Object.fromEntries(settingDiffs.map((_,i)=>[i,"pending"])));
   const [edits,setEdits]=useState<Record<number,Record<string,string>>>({});
+  const [settingEdits,setSettingEdits]=useState<Record<number,string>>({});
   const [slugs,setSlugs]=useState<Record<number,string>>({});
   const [applied,setApplied]=useState<Record<number,boolean>>({});
+  const [settingsApplied,setSettingsApplied]=useState<Record<number,boolean>>({});
   const [applying,setApplying]=useState(false);
   const [result,setResult]=useState("");
   const [failures,setFailures]=useState<Failure[]>([]);
@@ -66,10 +73,18 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
   function valueFor(index:number,diff:FieldDiff){return edits[index]?.[diff.field]??diff.new}
 
   const pending=draft.changes.map((_,i)=>i).filter(i=>decisions[i]==="accept"&&!applied[i]);
+  const pendingDeletes=draft.orphans.map((_,i)=>i).filter(i=>orphanDecisions[i]==="delete"&&!applied[draft.changes.length+i]);
+  const pendingSettings=settingDiffs.map((_,i)=>i).filter(i=>settingDecisions[i]==="accept"&&!settingsApplied[i]);
+  const acceptedCount=draft.changes.filter((_,i)=>decisions[i]==="accept").length+settingDiffs.filter((_,i)=>settingDecisions[i]==="accept").length;
+  const skippedCount=draft.changes.filter((_,i)=>decisions[i]==="skip").length+settingDiffs.filter((_,i)=>settingDecisions[i]==="skip").length;
+  const deleteCount=draft.orphans.filter((_,i)=>orphanDecisions[i]==="delete").length;
+  const selectableCount=draft.changes.length+settingDiffs.length;
+  const actionCount=pending.length+pendingDeletes.length+pendingSettings.length;
 
   async function apply(){
+    if(pendingDeletes.length>0&&!confirm(`${pendingDeletes.length} mevcut kayıt kalıcı olarak silinecek. Devam edilsin mi?`))return;
     setApplying(true);setResult("");setFailures([]);
-    let created=0,updated=0;
+    let created=0,updated=0,deleted=0,settingsUpdated=0;
     const failed:Failure[]=[];
     const kinds=Array.from(new Set(pending.map(i=>draft.changes[i].kind)));
     const existingByKind:Record<string,{byId:Map<number,Existing>;maxOrder:number}>={};
@@ -108,28 +123,86 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
         setApplied(prev=>({...prev,[i]:true}));
       }catch(e){failed.push({slug:change.slug,message:(e as Error).message||"Bilinmeyen hata"})}
     }
+    for(const i of pendingDeletes){
+      const orphan=draft.orphans[i];
+      try{
+        await request(`/api/v1/admin/content/${orphan.kind}/${orphan.id}`,{method:"DELETE"});
+        deleted++;
+        setApplied(prev=>({...prev,[draft.changes.length+i]:true}));
+      }catch(e){failed.push({slug:orphan.slug,message:(e as Error).message||"Silinemedi"})}
+    }
+    if(pendingSettings.length>0){
+      try{
+        const current:Record<string,string>=await request("/api/v1/admin/settings");
+        const next={...current};
+        for(const i of pendingSettings)next[settingDiffs[i].field]=settingEdits[i]??settingDiffs[i].new;
+        await request("/api/v1/admin/settings",{method:"PUT",body:JSON.stringify(next)});
+        settingsUpdated=pendingSettings.length;
+        setSettingsApplied(prev=>({...prev,...Object.fromEntries(pendingSettings.map(i=>[i,true]))}));
+      }catch(e){failed.push({slug:"Site metinleri",message:(e as Error).message||"Ayarlar kaydedilemedi"})}
+    }
     setApplying(false);
     setFailures(failed);
-    setResult(`${created} eklendi, ${updated} güncellendi${failed.length?`, ${failed.length} başarısız`:""}.`);
+    setResult(`${created} eklendi, ${updated} içerik ve ${settingsUpdated} site alanı güncellendi, ${deleted} silindi${failed.length?`, ${failed.length} başarısız`:""}.`);
   }
 
   const grouped=draft.changes.map((c,i)=>({c,i})).reduce<Record<string,{c:Change;i:number}[]>>((acc,x)=>{(acc[x.c.kind]??=[]).push(x);return acc},{});
 
   return <div className="cv-review">
+    <div className="cv-apply-bar" role="region" aria-label="CV değişikliklerini uygulama">
+      <div className="cv-selection-summary">
+        <strong>{acceptedCount} / {selectableCount} değişiklik seçildi</strong>
+        {skippedCount>0&&<span>{skippedCount} atlandı</span>}
+        {deleteCount>0&&<span>{deleteCount} mevcut kayıt silinecek</span>}
+        {acceptedCount===0&&deleteCount===0&&<span>Kartlardaki “Kabul” veya “Sil” düğmesiyle işlemleri seç.</span>}
+      </div>
+      <button type="button" className="primary" disabled={applying||actionCount===0} onClick={apply}>{applying?"Uygulanıyor…":`Seçilenleri uygula (${actionCount})`}</button>
+      {result&&<span className="notice" role="status" style={{margin:0}}>{result}</span>}
+    </div>
     {Object.entries(grouped).map(([kind,entries])=><div key={kind} className="cv-group">
       <h2 className="cv-group-h">{kindLabel[kind]||kind}</h2>
       {entries.map(({c,i})=><ChangeCard key={i} change={c} index={i} decision={decisions[i]} done={!!applied[i]} onDecision={d=>setDecisions(p=>({...p,[i]:d}))} slug={slugFor(i)} onSlug={v=>setSlugs(p=>({...p,[i]:v}))} valueFor={valueFor} onEdit={setEdit}/>)}
     </div>)}
-    {draft.orphans.length>0&&<div className="cv-group"><h2 className="cv-group-h">CV’de bulunmayanlar</h2>
-      {draft.orphans.map(o=><div key={`${o.kind}-${o.id}`} className="cv-orphan">{kindLabel[o.kind]||o.kind}: <strong>{o.label||o.slug}</strong> — bu CV’de yok. Silmek istersen ilgili bölümden elle sil. (Otomatik silinmez.)</div>)}
+    {settingDiffs.length>0&&<div className="cv-group"><h2 className="cv-group-h">Site metinleri</h2>
+      {settingDiffs.map((diff,i)=><SettingCard key={diff.field} diff={diff} decision={settingDecisions[i]} done={!!settingsApplied[i]} value={settingEdits[i]??diff.new} onValue={value=>setSettingEdits(p=>({...p,[i]:value}))} onDecision={decision=>setSettingDecisions(p=>({...p,[i]:decision}))}/>) }
     </div>}
-    <div className="cv-apply-bar">
-      <button className="primary" disabled={applying||pending.length===0} onClick={apply}>{applying?"Uygulanıyor…":"Seçilenleri uygula"}</button>
-      {result&&<span className="notice" role="status" style={{margin:0}}>{result}</span>}
-    </div>
+    {draft.orphans.length>0&&<div className="cv-group"><h2 className="cv-group-h">CV’de bulunmayanlar</h2>
+      <p className="cv-orphan-hint">Bu kayıtlar yüklediğin CV’de bulunamadı. Güvenlik için varsayılan olarak korunur; yalnızca “Sil” seçtiklerin uygulanırken kaldırılır.</p>
+      {draft.orphans.map((o,i)=>{
+        const done=!!applied[draft.changes.length+i];
+        const decision=orphanDecisions[i];
+        return <div key={`${o.kind}-${o.id}`} className={`cv-orphan ${decision}${done?" done":""}`}>
+          <div><span className="cv-badge cv-orphan-kind">{kindLabel[o.kind]||o.kind}</span> <strong>{o.label||o.slug}</strong><small>{o.slug}</small></div>
+          {done?<span className="cv-badge cv-done-tag">silindi</span>:<div className="cv-card-actions">
+            <button type="button" aria-pressed={decision==="keep"} className={decision==="keep"?"primary":"secondary"} onClick={()=>setOrphanDecisions(p=>({...p,[i]:"keep"}))}>Koru</button>
+            <button type="button" aria-pressed={decision==="delete"} className={decision==="delete"?"danger":"secondary"} onClick={()=>setOrphanDecisions(p=>({...p,[i]:"delete"}))}>Sil</button>
+          </div>}
+        </div>
+      })}
+    </div>}
     {failures.length>0&&<div className="error" role="alert"><strong>Başarısız olanlar:</strong>
       <ul>{failures.map((f,k)=><li key={k}>{f.slug}: {f.message}</li>)}</ul>
     </div>}
+  </div>;
+}
+
+function SettingCard({diff,decision,done,value,onValue,onDecision}:{diff:FieldDiff;decision:Decision;done:boolean;value:string;onValue:(value:string)=>void;onDecision:(decision:Decision)=>void}){
+  return <div className={`cv-card cv-setting-card ${decision}${done?" done":""}`}>
+    <div className="cv-card-head">
+      <span className="cv-badge cv-update">AYAR</span>
+      <strong>{settingLabel[diff.field]||diff.field}</strong>
+      {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
+      {!done&&decision==="accept"&&<span className="cv-badge cv-accepted-tag">kabul edildi</span>}
+      {!done&&decision==="skip"&&<span className="cv-badge cv-skipped-tag">atlanacak</span>}
+      {!done&&decision==="pending"&&<span className="cv-badge cv-pending-tag">bekliyor</span>}
+      <div className="cv-card-actions">
+        <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
+        <button type="button" aria-pressed={decision==="skip"} disabled={done} className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>
+      </div>
+    </div>
+    {diff.old&&<div className="cv-old">- {diff.old}</div>}
+    <textarea className="cv-new" aria-label={settingLabel[diff.field]||diff.field} disabled={done} value={value} onChange={e=>onValue(e.target.value)}/>
+    {diff.auto_translated&&<span className="cv-flag">otomatik çeviri</span>}
   </div>;
 }
 
@@ -140,6 +213,9 @@ function ChangeCard({change,index,decision,done,slug,onSlug,onDecision,valueFor,
       <span className={`cv-badge cv-${change.action}`}>{change.action==="create"?"YENİ":"GÜNCELLEME"}</span>
       <input className="cv-slug" aria-label="slug" disabled={done} value={slug} onChange={e=>onSlug(e.target.value)}/>
       {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
+      {!done&&decision==="accept"&&<span className="cv-badge cv-accepted-tag">kabul edildi</span>}
+      {!done&&decision==="skip"&&<span className="cv-badge cv-skipped-tag">atlanacak</span>}
+      {!done&&decision==="pending"&&<span className="cv-badge cv-pending-tag">bekliyor</span>}
       <div className="cv-card-actions">
         <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
         <button type="button" aria-pressed={decision==="skip"} disabled={done} className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>

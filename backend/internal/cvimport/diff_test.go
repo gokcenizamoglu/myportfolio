@@ -19,7 +19,7 @@ func TestBuildDraftMatchesExistingAndFlagsChanges(t *testing.T) {
 		"description_tr": "yeni", "description_en": "new",
 	}}}
 
-	draft := BuildDraft(existing, p, "tr")
+	draft := BuildDraft(existing, nil, p, "tr")
 
 	if len(draft.Changes) != 1 {
 		t.Fatalf("want 1 change, got %d", len(draft.Changes))
@@ -45,7 +45,7 @@ func TestBuildDraftMatchesExistingAndFlagsChanges(t *testing.T) {
 }
 
 func TestBuildDraftCreatesWhenNoMatchAndSlugifies(t *testing.T) {
-	draft := BuildDraft(map[string][]model.ContentItem{}, Proposals{
+	draft := BuildDraft(map[string][]model.ContentItem{}, nil, Proposals{
 		Certifications: []map[string]any{{"name_tr": "AWS Çözüm Mimarı", "name_en": "AWS Solutions Architect", "issuer": "Amazon", "year": "2025"}},
 	}, "tr")
 	if len(draft.Changes) != 1 {
@@ -69,9 +69,38 @@ func TestBuildDraftReportsOrphans(t *testing.T) {
 	existing := map[string][]model.ContentItem{
 		"skills": {{ID: 3, Kind: "skills", Slug: "backend", Data: `{"group_tr":"Backend","group_en":"Backend"}`}},
 	}
-	draft := BuildDraft(existing, Proposals{Skills: []map[string]any{}}, "tr")
+	draft := BuildDraft(existing, nil, Proposals{Skills: []map[string]any{}}, "tr")
 	if len(draft.Orphans) != 1 || draft.Orphans[0].ID != 3 || draft.Orphans[0].Kind != "skills" {
 		t.Fatalf("want 1 skills orphan, got %+v", draft.Orphans)
+	}
+}
+
+func TestBuildDraftOmitsUnchangedUpdatesWithoutMakingThemOrphans(t *testing.T) {
+	existing := map[string][]model.ContentItem{
+		"education": {{ID: 9, Kind: "education", Slug: "school", Data: `{"school_tr":"Okul","school_en":"School","degree_tr":"Bölüm"}`}},
+	}
+	draft := BuildDraft(existing, nil, Proposals{Education: []map[string]any{{
+		"school_tr": "Okul", "school_en": "School", "degree_tr": "Bölüm",
+	}}}, "tr")
+	if len(draft.Changes) != 0 {
+		t.Fatalf("unchanged update should not be shown, got %+v", draft.Changes)
+	}
+	if len(draft.Orphans) != 0 {
+		t.Fatalf("matched unchanged item should not be an orphan, got %+v", draft.Orphans)
+	}
+}
+
+func TestBuildDraftIncludesOnlyChangedSettings(t *testing.T) {
+	draft := BuildDraft(nil, map[string]string{
+		"tagline_tr": "Aynı", "tagline_en": "Same", "about_lead_tr": "Eski",
+	}, Proposals{Settings: map[string]any{
+		"tagline_tr": "Aynı", "tagline_en": "Same", "about_lead_tr": "Yeni",
+	}}, "tr")
+	if len(draft.Settings) != 1 {
+		t.Fatalf("want one changed setting, got %+v", draft.Settings)
+	}
+	if draft.Settings[0].Field != "about_lead_tr" || draft.Settings[0].Old != "Eski" || draft.Settings[0].New != "Yeni" {
+		t.Fatalf("unexpected setting diff: %+v", draft.Settings[0])
 	}
 }
 
