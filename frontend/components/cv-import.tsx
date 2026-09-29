@@ -27,94 +27,125 @@ export default function CvImport({request}:{request:ApiRequest}){
 
   return <div>
     <div className="toolbar"><h1>CV içe aktar</h1></div>
-    {error&&<div className="error" style={{marginBottom:16}}>{error}</div>}
+    {error&&<div className="error" role="alert" style={{marginBottom:16}}>{error}</div>}
     <div className="cv-upload">
       <label>CV dili
         <select value={lang} onChange={e=>setLang(e.target.value as "tr"|"en")}><option value="tr">Türkçe</option><option value="en">English</option></select>
       </label>
-      <input type="file" accept=".pdf" disabled={loading} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f)}}/>
+      <input type="file" accept=".pdf" aria-label="CV PDF dosyası" disabled={loading} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f)}}/>
       {loading&&<small>Gemini CV’yi okuyor…</small>}
       <p className="cv-hint">PDF yüklersin, Gemini içeriği çıkarır; hiçbir şey sen onaylamadan kaydedilmez.</p>
     </div>
-    {draft&&<CvReview draft={draft} lang={lang} request={request}/>}
+    {draft&&<CvReview draft={draft} request={request}/>}
   </div>;
 }
 
 type Decision="accept"|"skip";
+type Existing={id:number;slug:string;data:Record<string,unknown>;sort_order:number;visible:boolean};
+type Failure={slug:string;message:string};
 
-function CvReview({draft,lang,request}:{draft:Draft;lang:"tr"|"en";request:ApiRequest}){
+// Coerce an edited string back to the original value's type; never stringify typed data.
+function coerce(field:string,value:string,original:unknown):unknown{
+  if(Array.isArray(original)||field==="tech_stack"||field==="items")return value.split(",").map(v=>v.trim()).filter(Boolean);
+  if(typeof original==="number")return value.trim()===""?original:(Number.isNaN(Number(value))?value:Number(value));
+  if(typeof original==="boolean")return value==="true";
+  return value;
+}
+
+function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
   const [decisions,setDecisions]=useState<Record<number,Decision>>(()=>Object.fromEntries(draft.changes.map((_,i)=>[i,"accept"])));
   const [edits,setEdits]=useState<Record<number,Record<string,string>>>({});
+  const [applied,setApplied]=useState<Record<number,boolean>>({});
   const [applying,setApplying]=useState(false);
   const [result,setResult]=useState("");
-  const [error,setError]=useState("");
+  const [failures,setFailures]=useState<Failure[]>([]);
 
   function setEdit(index:number,field:string,value:string){setEdits(prev=>({...prev,[index]:{...prev[index],[field]:value}}))}
-  function valueFor(change:Change,index:number,diff:FieldDiff){return edits[index]?.[diff.field]??diff.new}
+  function valueFor(index:number,diff:FieldDiff){return edits[index]?.[diff.field]??diff.new}
+
+  const pending=draft.changes.map((_,i)=>i).filter(i=>decisions[i]==="accept"&&!applied[i]);
 
   async function apply(){
-    setApplying(true);setError("");setResult("");
-    let created=0,updated=0,failed=0;
-    for(let i=0;i<draft.changes.length;i++){
-      if(decisions[i]!=="accept")continue;
-      const change=draft.changes[i];
-      const data:Record<string,unknown>={...change.data};
-      for(const diff of change.field_diffs)data[diff.field]=coerce(diff.field,valueFor(change,i,diff),change.data[diff.field]);
+    setApplying(true);setResult("");setFailures([]);
+    let created=0,updated=0;
+    const failed:Failure[]=[];
+    const kinds=Array.from(new Set(pending.map(i=>draft.changes[i].kind)));
+    const existingByKind:Record<string,{byId:Map<number,Existing>;maxOrder:number}>={};
+    const brokenKinds:Record<string,string>={};
+    for(const kind of kinds){
       try{
-        if(change.action==="update"&&change.matched_id){
-          await request(`/api/v1/admin/content/${change.kind}/${change.matched_id}`,{method:"PUT",body:JSON.stringify({slug:change.slug,data,sort_order:0,visible:true})});
+        const list:Existing[]=await request(`/api/v1/admin/content/${kind}`);
+        existingByKind[kind]={byId:new Map(list.map(x=>[x.id,x])),maxOrder:Math.max(0,...list.map(x=>x.sort_order??0))};
+      }catch(e){brokenKinds[kind]=(e as Error).message||"Mevcut kayıtlar okunamadı"}
+    }
+    for(const i of pending){
+      const change=draft.changes[i];
+      if(brokenKinds[change.kind]){failed.push({slug:change.slug,message:brokenKinds[change.kind]});continue}
+      const ctx=existingByKind[change.kind];
+      try{
+        if(change.action==="update"&&change.matched_id!=null){
+          const current=ctx.byId.get(change.matched_id);
+          if(!current)throw new Error("Eşleşen kayıt bulunamadı");
+          const data:Record<string,unknown>={...current.data};
+          for(const diff of change.field_diffs){
+            if(diff.changed||edits[i]?.[diff.field]!==undefined)data[diff.field]=coerce(diff.field,valueFor(i,diff),current.data[diff.field]);
+          }
+          await request(`/api/v1/admin/content/${change.kind}/${change.matched_id}`,{method:"PUT",body:JSON.stringify({slug:change.slug,data,sort_order:current.sort_order})});
           updated++;
         }else{
-          await request(`/api/v1/admin/content/${change.kind}`,{method:"POST",body:JSON.stringify({slug:change.slug,data,sort_order:0,visible:true})});
+          const data:Record<string,unknown>={...change.data};
+          for(const diff of change.field_diffs){
+            if(diff.changed||edits[i]?.[diff.field]!==undefined)data[diff.field]=coerce(diff.field,valueFor(i,diff),change.data[diff.field]);
+          }
+          ctx.maxOrder+=1;
+          await request(`/api/v1/admin/content/${change.kind}`,{method:"POST",body:JSON.stringify({slug:change.slug,data,sort_order:ctx.maxOrder,visible:true})});
           created++;
         }
-      }catch{failed++}
+        setApplied(prev=>({...prev,[i]:true}));
+      }catch(e){failed.push({slug:change.slug,message:(e as Error).message||"Bilinmeyen hata"})}
     }
     setApplying(false);
-    setResult(`${created} eklendi, ${updated} güncellendi${failed?`, ${failed} başarısız`:""}.`);
-  }
-
-  // Preserve array-typed fields (tech_stack, items): if the original was an
-  // array, split the edited comma string back into an array.
-  function coerce(field:string,value:string,original:unknown):unknown{
-    if(Array.isArray(original)||field==="tech_stack"||field==="items")return value.split(",").map(v=>v.trim()).filter(Boolean);
-    return value;
+    setFailures(failed);
+    setResult(`${created} eklendi, ${updated} güncellendi${failed.length?`, ${failed.length} başarısız`:""}.`);
   }
 
   const grouped=draft.changes.map((c,i)=>({c,i})).reduce<Record<string,{c:Change;i:number}[]>>((acc,x)=>{(acc[x.c.kind]??=[]).push(x);return acc},{});
 
   return <div className="cv-review">
-    {error&&<div className="error">{error}</div>}
     {Object.entries(grouped).map(([kind,entries])=><div key={kind} className="cv-group">
       <h2 className="cv-group-h">{kindLabel[kind]||kind}</h2>
-      {entries.map(({c,i})=><ChangeCard key={i} change={c} index={i} decision={decisions[i]} onDecision={d=>setDecisions({...decisions,[i]:d})} valueFor={valueFor} onEdit={setEdit}/>)}
+      {entries.map(({c,i})=><ChangeCard key={i} change={c} index={i} decision={decisions[i]} done={!!applied[i]} onDecision={d=>setDecisions(p=>({...p,[i]:d}))} valueFor={valueFor} onEdit={setEdit}/>)}
     </div>)}
     {draft.orphans.length>0&&<div className="cv-group"><h2 className="cv-group-h">CV’de bulunmayanlar</h2>
       {draft.orphans.map(o=><div key={`${o.kind}-${o.id}`} className="cv-orphan">{kindLabel[o.kind]||o.kind}: <strong>{o.label||o.slug}</strong> — bu CV’de yok. Silmek istersen ilgili bölümden elle sil. (Otomatik silinmez.)</div>)}
     </div>}
     <div className="cv-apply-bar">
-      <button className="primary" disabled={applying} onClick={apply}>{applying?"Uygulanıyor…":"Seçilenleri uygula"}</button>
-      {result&&<span className="notice" style={{margin:0}}>{result}</span>}
+      <button className="primary" disabled={applying||pending.length===0} onClick={apply}>{applying?"Uygulanıyor…":"Seçilenleri uygula"}</button>
+      {result&&<span className="notice" role="status" style={{margin:0}}>{result}</span>}
     </div>
+    {failures.length>0&&<div className="error" role="alert"><strong>Başarısız olanlar:</strong>
+      <ul>{failures.map((f,k)=><li key={k}>{f.slug}: {f.message}</li>)}</ul>
+    </div>}
   </div>;
 }
 
-function ChangeCard({change,index,decision,onDecision,valueFor,onEdit}:{change:Change;index:number;decision:Decision;onDecision:(d:Decision)=>void;valueFor:(c:Change,i:number,d:FieldDiff)=>string;onEdit:(i:number,field:string,value:string)=>void}){
+function ChangeCard({change,index,decision,done,onDecision,valueFor,onEdit}:{change:Change;index:number;decision:Decision;done:boolean;onDecision:(d:Decision)=>void;valueFor:(i:number,d:FieldDiff)=>string;onEdit:(i:number,field:string,value:string)=>void}){
   const visible=change.field_diffs.filter(d=>d.changed);
-  return <div className={`cv-card ${decision}`}>
+  return <div className={`cv-card ${decision}${done?" done":""}`}>
     <div className="cv-card-head">
       <span className={`cv-badge cv-${change.action}`}>{change.action==="create"?"YENİ":"GÜNCELLEME"}</span>
       <strong>{change.slug}</strong>
+      {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
       <div className="cv-card-actions">
-        <button type="button" className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
-        <button type="button" className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>
+        <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
+        <button type="button" aria-pressed={decision==="skip"} disabled={done} className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>
       </div>
     </div>
     <div className="cv-fields">
       {visible.map(diff=><div key={diff.field} className="cv-field">
         <div className="cv-field-key">{diff.field}{diff.auto_translated&&<span className="cv-flag">otomatik çeviri</span>}</div>
         {change.action==="update"&&diff.old&&<div className="cv-old">- {diff.old}</div>}
-        <textarea className="cv-new" value={valueFor(change,index,diff)} onChange={e=>onEdit(index,diff.field,e.target.value)}/>
+        <textarea className="cv-new" aria-label={diff.field} disabled={done} value={valueFor(index,diff)} onChange={e=>onEdit(index,diff.field,e.target.value)}/>
       </div>)}
     </div>
   </div>;
