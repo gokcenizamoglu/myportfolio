@@ -71,6 +71,18 @@ func TestImportRejectsNonPDF(t *testing.T) {
 	}
 }
 
+func TestImportRejectsFakePDFByContent(t *testing.T) {
+	h := NewCVImportHandler(newImportTestStore(t), fakeExtractor{})
+	body, ct := multipartPDF(t, "file", "cv.pdf", []byte("\x89PNG\r\n\x1a\n"))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/cv/import", body)
+	req.Header.Set("Content-Type", ct)
+	rec := httptest.NewRecorder()
+	h.Import(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("want 400 for non-pdf content, got %d", rec.Code)
+	}
+}
+
 func TestImportReturnsDraft(t *testing.T) {
 	h := NewCVImportHandler(newImportTestStore(t), fakeExtractor{out: cvimport.Proposals{
 		Certifications: []map[string]any{{"name_tr": "AWS", "name_en": "AWS", "issuer": "Amazon", "year": "2025"}},

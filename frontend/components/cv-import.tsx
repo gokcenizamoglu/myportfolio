@@ -55,12 +55,14 @@ function coerce(field:string,value:string,original:unknown):unknown{
 function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
   const [decisions,setDecisions]=useState<Record<number,Decision>>(()=>Object.fromEntries(draft.changes.map((_,i)=>[i,"accept"])));
   const [edits,setEdits]=useState<Record<number,Record<string,string>>>({});
+  const [slugs,setSlugs]=useState<Record<number,string>>({});
   const [applied,setApplied]=useState<Record<number,boolean>>({});
   const [applying,setApplying]=useState(false);
   const [result,setResult]=useState("");
   const [failures,setFailures]=useState<Failure[]>([]);
 
   function setEdit(index:number,field:string,value:string){setEdits(prev=>({...prev,[index]:{...prev[index],[field]:value}}))}
+  function slugFor(index:number){return slugs[index]??draft.changes[index].slug}
   function valueFor(index:number,diff:FieldDiff){return edits[index]?.[diff.field]??diff.new}
 
   const pending=draft.changes.map((_,i)=>i).filter(i=>decisions[i]==="accept"&&!applied[i]);
@@ -81,6 +83,8 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
     for(const i of pending){
       const change=draft.changes[i];
       if(brokenKinds[change.kind]){failed.push({slug:change.slug,message:brokenKinds[change.kind]});continue}
+      const slug=slugFor(i).trim();
+      if(slug===""){failed.push({slug:change.slug||"(boş)",message:"Slug boş olamaz"});continue}
       const ctx=existingByKind[change.kind];
       try{
         if(change.action==="update"&&change.matched_id!=null){
@@ -90,7 +94,7 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
           for(const diff of change.field_diffs){
             if(diff.changed||edits[i]?.[diff.field]!==undefined)data[diff.field]=coerce(diff.field,valueFor(i,diff),current.data[diff.field]);
           }
-          await request(`/api/v1/admin/content/${change.kind}/${change.matched_id}`,{method:"PUT",body:JSON.stringify({slug:change.slug,data,sort_order:current.sort_order})});
+          await request(`/api/v1/admin/content/${change.kind}/${change.matched_id}`,{method:"PUT",body:JSON.stringify({slug,data,sort_order:current.sort_order})});
           updated++;
         }else{
           const data:Record<string,unknown>={...change.data};
@@ -98,7 +102,7 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
             if(diff.changed||edits[i]?.[diff.field]!==undefined)data[diff.field]=coerce(diff.field,valueFor(i,diff),change.data[diff.field]);
           }
           ctx.maxOrder+=1;
-          await request(`/api/v1/admin/content/${change.kind}`,{method:"POST",body:JSON.stringify({slug:change.slug,data,sort_order:ctx.maxOrder,visible:true})});
+          await request(`/api/v1/admin/content/${change.kind}`,{method:"POST",body:JSON.stringify({slug,data,sort_order:ctx.maxOrder,visible:true})});
           created++;
         }
         setApplied(prev=>({...prev,[i]:true}));
@@ -114,7 +118,7 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
   return <div className="cv-review">
     {Object.entries(grouped).map(([kind,entries])=><div key={kind} className="cv-group">
       <h2 className="cv-group-h">{kindLabel[kind]||kind}</h2>
-      {entries.map(({c,i})=><ChangeCard key={i} change={c} index={i} decision={decisions[i]} done={!!applied[i]} onDecision={d=>setDecisions(p=>({...p,[i]:d}))} valueFor={valueFor} onEdit={setEdit}/>)}
+      {entries.map(({c,i})=><ChangeCard key={i} change={c} index={i} decision={decisions[i]} done={!!applied[i]} onDecision={d=>setDecisions(p=>({...p,[i]:d}))} slug={slugFor(i)} onSlug={v=>setSlugs(p=>({...p,[i]:v}))} valueFor={valueFor} onEdit={setEdit}/>)}
     </div>)}
     {draft.orphans.length>0&&<div className="cv-group"><h2 className="cv-group-h">CV’de bulunmayanlar</h2>
       {draft.orphans.map(o=><div key={`${o.kind}-${o.id}`} className="cv-orphan">{kindLabel[o.kind]||o.kind}: <strong>{o.label||o.slug}</strong> — bu CV’de yok. Silmek istersen ilgili bölümden elle sil. (Otomatik silinmez.)</div>)}
@@ -129,12 +133,12 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
   </div>;
 }
 
-function ChangeCard({change,index,decision,done,onDecision,valueFor,onEdit}:{change:Change;index:number;decision:Decision;done:boolean;onDecision:(d:Decision)=>void;valueFor:(i:number,d:FieldDiff)=>string;onEdit:(i:number,field:string,value:string)=>void}){
+function ChangeCard({change,index,decision,done,slug,onSlug,onDecision,valueFor,onEdit}:{change:Change;slug:string;onSlug:(v:string)=>void;index:number;decision:Decision;done:boolean;onDecision:(d:Decision)=>void;valueFor:(i:number,d:FieldDiff)=>string;onEdit:(i:number,field:string,value:string)=>void}){
   const visible=change.field_diffs.filter(d=>d.changed);
   return <div className={`cv-card ${decision}${done?" done":""}`}>
     <div className="cv-card-head">
       <span className={`cv-badge cv-${change.action}`}>{change.action==="create"?"YENİ":"GÜNCELLEME"}</span>
-      <strong>{change.slug}</strong>
+      <input className="cv-slug" aria-label="slug" disabled={done} value={slug} onChange={e=>onSlug(e.target.value)}/>
       {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
       <div className="cv-card-actions">
         <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>

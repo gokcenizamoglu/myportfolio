@@ -197,5 +197,9 @@ func slugify(s string) string {
 			prevDash = true
 		}
 	}
-	return strings.Trim(b.String(), "-")
+	out := strings.Trim(b.String(), "-")
+	if out == "" {
+		return "item"
+	}
+	return out
 }

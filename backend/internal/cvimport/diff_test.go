@@ -1,6 +1,7 @@
 package cvimport
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/gokceguler/portfolio/backend/internal/model"
@@ -87,6 +88,16 @@ func TestStr(t *testing.T) {
 	for _, c := range cases {
 		if got := str(c.in); got != c.want {
 			t.Errorf("str(%v) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestSlugifyNeverEmpty(t *testing.T) {
+	re := regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
+	for _, in := range []string{"", "日本語", "---", "Çalışma Örneği"} {
+		got := slugify(in)
+		if got == "" || !re.MatchString(got) {
+			t.Errorf("slugify(%q) = %q, want non-empty valid slug", in, got)
 		}
 	}
 }

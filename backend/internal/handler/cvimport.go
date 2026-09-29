@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -74,7 +73,7 @@ func (h *CVImportHandler) Import(w http.ResponseWriter, r *http.Request) {
 		existing[kind] = items
 	}
 
-	proposals, err := h.extractor.ExtractCV(context.Background(), pdf, lang, existingSummary(existing))
+	proposals, err := h.extractor.ExtractCV(r.Context(),pdf, lang, existingSummary(existing))
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "CV extraction failed: "+err.Error())
 		return
