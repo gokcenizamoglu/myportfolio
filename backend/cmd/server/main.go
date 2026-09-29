@@ -12,6 +12,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/gokceguler/portfolio/backend/internal/cvimport"
+	"github.com/gokceguler/portfolio/backend/internal/gemini"
 	"github.com/gokceguler/portfolio/backend/internal/handler"
 	authmw "github.com/gokceguler/portfolio/backend/internal/middleware"
 	"github.com/gokceguler/portfolio/backend/internal/model"
@@ -62,9 +64,15 @@ func main() {
 	publicHandler := handler.NewPublicHandler(s)
 	adminHandler := handler.NewAdminHandler(s)
 	mediaHandler := handler.NewMediaHandler(uploadDir)
+	// Keep the interface nil when unconfigured (avoid typed-nil interface).
+	var cvExtractor cvimport.Extractor
+	if c := gemini.New(os.Getenv("GEMINI_API_KEY"), os.Getenv("GEMINI_MODEL")); c != nil {
+		cvExtractor = c
+	}
+	cvImportHandler := handler.NewCVImportHandler(s, cvExtractor)
 	loginLimiter := authmw.NewRateLimiter(8, time.Minute)
 	r := chi.NewRouter()
-	r.Use(chimw.RequestID, chimw.RealIP, chimw.Logger, chimw.Recoverer, chimw.Timeout(15*time.Second))
+	r.Use(chimw.RequestID, chimw.RealIP, chimw.Logger, chimw.Recoverer, chimw.Timeout(90*time.Second))
 	r.Use(authmw.SecurityHeaders)
 	r.Use(cors.Handler(cors.Options{AllowedOrigins: strings.Split(env("CORS_ORIGINS", "http://localhost:3000"), ","), AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"}, AllowCredentials: true, MaxAge: 300}))
 	r.Get("/healthz", publicHandler.Health)
@@ -76,6 +84,7 @@ func main() {
 		r.Post("/api/v1/admin/logout", adminHandler.Logout)
 		r.Get("/api/v1/admin/me", adminHandler.Me)
 		r.Post("/api/v1/admin/media", mediaHandler.Upload)
+		r.Post("/api/v1/admin/cv/import", cvImportHandler.Import)
 		r.Get("/api/v1/admin/content/{kind}", adminHandler.ListContent)
 		r.Post("/api/v1/admin/content/{kind}", adminHandler.CreateContent)
 		r.Put("/api/v1/admin/content/{kind}/{id}", adminHandler.UpdateContent)
@@ -84,7 +93,7 @@ func main() {
 		r.Put("/api/v1/admin/settings", adminHandler.UpdateSettings)
 		r.Delete("/api/v1/admin/settings/{key}", adminHandler.DeleteSetting)
 	})
-	server := &http.Server{Addr: ":" + port, Handler: r, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Addr: ":" + port, Handler: r, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 90 * time.Second, IdleTimeout: 60 * time.Second}
 	log.Printf("portfolio API listening on %s", server.Addr)
 	log.Fatal(server.ListenAndServe())
 }

@@ -70,6 +70,16 @@ Türkçe site `http://localhost:3000/tr`, İngilizce site `http://localhost:3000
 
 Admin panelindeki **Site ve marka** bölümünden küçük logo ile ana “Gökçe Güler” logosu ayrı ayrı yüklenebilir. Aynı bölümde Boots4 düzenindeki dört navigasyon kutusunun arka plan görselleri yönetilir. **Ekler ve CV** bölümünden yeni CV, portfolyo eki veya PDF eklenebilir; sertifika kayıtlarının kendi dosya alanı da vardır.
 
+### CV içe aktarma (Gemini)
+
+Admin panelinde CV PDF'i yükleyin, CV'nin dilini seçin ve önerilen değişikliklerin renk kodlu diff'ini inceleyin. Her alan için kabul et / düzenle / atla seçeneğini kullanın, ardından uygulayın. `POST /api/v1/admin/cv/import` yalnızca öneri (diff taslağı) üretir; veritabanına yazmaz.
+
+Ortam değişkenleri: `GEMINI_API_KEY` (boş bırakılırsa özellik devre dışıdır, endpoint 503 döner) ve `GEMINI_MODEL`.
+
+**Gizlilik notu:** Yüklenen CV, içerik çıkarımı için Google'ın Gemini API'sine gönderilir. Bu, yöneticinin kendi belgesidir ve yalnızca açık bir eylemle (yükleme) gönderilir. `GEMINI_API_KEY` boş bırakılırsa hiçbir veri gönderilmez.
+
+Not: Çıkarım süresine yer açmak için istek zaman aşımı (chi `Timeout` ve `WriteTimeout`) 90 sn'ye çıkarıldı; production'da gerçek limitleri reverse proxy belirler.
+
 ## API özeti
 
 | Method | Endpoint | Amaç |
@@ -82,6 +92,7 @@ Admin panelindeki **Site ve marka** bölümünden küçük logo ile ana “Gök�
 | PUT/DELETE | `/api/v1/admin/content/{kind}/{id}` | Güncelle / sil |
 | GET/PUT | `/api/v1/admin/settings` | Site ayarlarını listele / ekle-güncelle |
 | DELETE | `/api/v1/admin/settings/{key}` | Bir site ayarını sil |
+| POST | `/api/v1/admin/cv/import` | CV'den içerik önerileri üret (yazmaz) |
 
 `kind`: `projects`, `experiences`, `education`, `certifications`, `skills`, `socials`, `documents`.
 
@@ -101,7 +112,7 @@ Backend küçük ama saldırı yüzeyi ciddiye alınarak kuruldu:
 
 ## Ortam değişkenleri
 
-Backend: `PORT`, `APP_ENV`, `DATABASE_PATH`, `CORS_ORIGINS`.
+Backend: `PORT`, `APP_ENV`, `DATABASE_PATH`, `CORS_ORIGINS`, `GEMINI_API_KEY` (opsiyonel; boşsa CV içe aktarma kapalı), `GEMINI_MODEL` (varsayılan örnek: `gemini-2.0-flash`).
 
 Frontend: `API_URL` sunucu tarafı erişimi, `NEXT_PUBLIC_API_URL` tarayıcı/admin erişimi için kullanılır. Production ortamında ikisini de gerçek HTTPS adreslerine göre ayarlayın.
 
