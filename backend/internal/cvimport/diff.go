@@ -148,7 +148,7 @@ func str(v any) string {
 		}
 		return "false"
 	case float64:
-		return strings.TrimRight(strings.TrimRight(jsonNumber(t), "0"), ".")
+		return jsonNumber(t)
 	default:
 		b, _ := json.Marshal(t)
 		return string(b)

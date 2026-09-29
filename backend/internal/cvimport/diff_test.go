@@ -73,3 +73,20 @@ func TestBuildDraftReportsOrphans(t *testing.T) {
 		t.Fatalf("want 1 skills orphan, got %+v", draft.Orphans)
 	}
 }
+
+func TestStr(t *testing.T) {
+	cases := []struct {
+		in   any
+		want string
+	}{
+		{float64(2020), "2020"},
+		{float64(1.5), "1.5"},
+		{[]any{"a", "b"}, "a, b"},
+		{true, "true"},
+	}
+	for _, c := range cases {
+		if got := str(c.in); got != c.want {
+			t.Errorf("str(%v) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}

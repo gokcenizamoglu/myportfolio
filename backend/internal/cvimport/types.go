@@ -76,5 +76,3 @@ var bilingualKeys = map[string][]string{
 	"skills":         {"group"},
 	"projects":       {"name", "description", "body"},
 }
-
-var _ = context.Background // keep context imported for the interface
