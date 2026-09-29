@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"net/http"
@@ -19,11 +20,18 @@ import (
 	"github.com/gokceguler/portfolio/backend/internal/model"
 	"github.com/gokceguler/portfolio/backend/internal/store"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
+	// Load local development settings without overriding variables supplied by
+	// the shell or deployment environment.
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Printf("warning: could not load .env: %v", err)
+	}
+
 	seed := flag.Bool("seed", false, "seed initial portfolio content")
 	createAdmin := flag.String("create-admin", "", "create or replace admin, username:password")
 	flag.Parse()

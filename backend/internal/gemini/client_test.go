@@ -2,6 +2,13 @@ package gemini
 
 import "testing"
 
+func TestNewUsesDefaultModel(t *testing.T) {
+	client := New("test-key", "")
+	if client == nil || client.model != defaultModel {
+		t.Fatalf("default model = %q, want %q", client.model, defaultModel)
+	}
+}
+
 func TestParseResponseExtractsProposals(t *testing.T) {
 	// Gemini returns the model's JSON as a string in candidates[0].content.parts[0].text.
 	body := []byte(`{

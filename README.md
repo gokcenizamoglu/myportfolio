@@ -112,7 +112,7 @@ Backend küçük ama saldırı yüzeyi ciddiye alınarak kuruldu:
 
 ## Ortam değişkenleri
 
-Backend: `PORT`, `APP_ENV`, `DATABASE_PATH`, `CORS_ORIGINS`, `GEMINI_API_KEY` (opsiyonel; boşsa CV içe aktarma kapalı), `GEMINI_MODEL` (varsayılan örnek: `gemini-2.0-flash`).
+Backend: `PORT`, `APP_ENV`, `DATABASE_PATH`, `CORS_ORIGINS`, `GEMINI_API_KEY` (opsiyonel; boşsa CV içe aktarma kapalı), `GEMINI_MODEL` (varsayılan: `gemini-2.5-flash`).
 
 Frontend: `API_URL` sunucu tarafı erişimi, `NEXT_PUBLIC_API_URL` tarayıcı/admin erişimi için kullanılır. Production ortamında ikisini de gerçek HTTPS adreslerine göre ayarlayın.
 

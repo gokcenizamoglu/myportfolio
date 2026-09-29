@@ -14,7 +14,7 @@ import (
 	"github.com/gokceguler/portfolio/backend/internal/cvimport"
 )
 
-const defaultModel = "gemini-2.0-flash"
+const defaultModel = "gemini-2.5-flash"
 
 var _ cvimport.Extractor = (*Client)(nil)
 
