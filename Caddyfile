@@ -1,0 +1,24 @@
+# Caddy config for the portfolio. Caddy obtains and renews a Let's Encrypt
+# TLS certificate for $DOMAIN automatically. Both DOMAIN and ACME_EMAIL come
+# from the environment (set in .env.prod / docker-compose.prod.yml).
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Backend: API, admin, uploaded media, health check.
+	# Paths are forwarded unchanged (the Go server already serves under /api,
+	# /uploads and /healthz), so no rewrite is needed.
+	@backend path /api/* /uploads/* /healthz
+	handle @backend {
+		reverse_proxy api:8080
+	}
+
+	# Everything else -> Next.js frontend.
+	handle {
+		reverse_proxy web:3000
+	}
+}

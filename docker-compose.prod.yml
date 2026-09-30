@@ -1,0 +1,74 @@
+# Production stack: Caddy (TLS + reverse proxy) in front of the Next.js
+# frontend and the Go API, all on one host. Only Caddy is exposed to the
+# internet; web and api talk over the internal network.
+#
+# Usage:
+#   cp .env.prod.example .env.prod   # then fill in DOMAIN, ACME_EMAIL, GEMINI_API_KEY
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+#
+# Single-domain path routing (see Caddyfile) keeps the admin session cookie
+# first-party, so it works with SameSite=Lax and no CORS setup is needed.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # Let's Encrypt certificates (must persist!)
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+    networks: [internal]
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      APP_ENV: production
+      DATABASE_PATH: /data/portfolio.db
+      UPLOAD_DIR: /data/uploads
+      CORS_ORIGINS: https://${DOMAIN}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+    volumes:
+      - portfolio_data:/data   # SQLite DB + uploaded media (must persist!)
+    expose:
+      - "8080"
+    networks: [internal]
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the client bundle at build time. Must be the public
+        # origin the browser can reach; same origin as the site => no CORS.
+        NEXT_PUBLIC_API_URL: https://${DOMAIN}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:8080        # server-side (SSR) fetch, internal network
+      NEXT_PUBLIC_API_URL: https://${DOMAIN}
+      NEXT_PUBLIC_SITE_URL: https://${DOMAIN}
+    depends_on:
+      - api
+    expose:
+      - "3000"
+    networks: [internal]
+
+volumes:
+  portfolio_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:

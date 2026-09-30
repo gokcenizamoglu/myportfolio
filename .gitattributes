@@ -1,0 +1,3 @@
+# Keep shell scripts and Caddyfile LF so they run on the Linux VM.
+*.sh text eol=lf
+Caddyfile text eol=lf

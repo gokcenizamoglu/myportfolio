@@ -1,5 +1,6 @@
 .env
 .env.local
+.env.prod
 node_modules/
 .next/
 *.tsbuildinfo
@@ -18,3 +19,6 @@ portfolio-api-test.exe
 migration-test.db
 test-uploads/
 .superpowers/
+backend/server.exe
+tmp/
+seed-data/
