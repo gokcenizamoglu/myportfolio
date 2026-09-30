@@ -97,6 +97,18 @@ func TestCreateContentValidatesSlug(t *testing.T) {
 	}
 }
 
+func TestContentOutputDefaultsLegacyProjectFeaturedState(t *testing.T) {
+	featured := contentOutput(model.ContentItem{Kind: "projects", Data: `{}`, SortOrder: 5})
+	if featured["data"].(map[string]any)["featured"] != true {
+		t.Fatal("legacy project in the first five positions should default to featured")
+	}
+
+	other := contentOutput(model.ContentItem{Kind: "projects", Data: `{"featured":false}`, SortOrder: 1})
+	if other["data"].(map[string]any)["featured"] != false {
+		t.Fatal("explicit featured=false must be preserved")
+	}
+}
+
 func TestUpdateSettingsRejectsBadKey(t *testing.T) {
 	h := newTestHandler(t)
 	req := httptest.NewRequest(http.MethodPut, "/api/v1/admin/settings", strings.NewReader(`{"Bad Key!":"x"}`))

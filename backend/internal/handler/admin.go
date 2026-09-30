@@ -207,5 +207,10 @@ func (h *AdminHandler) DeleteSetting(w http.ResponseWriter, r *http.Request) {
 func contentOutput(item model.ContentItem) map[string]any {
 	var data map[string]any
 	_ = json.Unmarshal([]byte(item.Data), &data)
+	if item.Kind == "projects" {
+		if _, exists := data["featured"]; !exists {
+			data["featured"] = item.SortOrder <= 5
+		}
+	}
 	return map[string]any{"id": item.ID, "kind": item.Kind, "slug": item.Slug, "data": data, "sort_order": item.SortOrder, "visible": item.Visible, "created_at": item.CreatedAt, "updated_at": item.UpdatedAt}
 }

@@ -8,8 +8,8 @@ import type {PortfolioData,Project} from "@/lib/types";
 type Locale="tr"|"en";
 type Section="about"|"experience"|"work"|"contact";
 const copy={
-  tr:{nav:["Hakkımda","Deneyim","Projeler","İletişim"],navDesc:["Yaklaşımım, yetkinliklerim ve özgeçmişim","Roller, sorumluluklar ve üretim deneyimi","Ürünler, sistemler ve teknik detaylar","Bir fikir veya iş birliği için"],about:"Teknik yaklaşımım",work:"Geliştirdiğim seçkin sistemler",workNote:"Karmaşık iş akışlarını sade, güvenilir ürünlere dönüştürdüğüm bazı çalışmalar.",experience:"Mühendislik deneyimlerim",experienceNote:"Ürün geliştirme, teknik koordinasyon ve production sorumluluğunun zaman içindeki gelişimi.",education:"Eğitim",skills:"Teknik yetkinlikler",certs:"Sertifikalar",library:"Özgeçmişimi incele",libraryNote:"Deneyimimin ayrıntılı dökümüne Türkçe veya İngilizce ulaşabilirsin.",contact:"Gelin birlikte tasarlayalım",open:"Aç / indir",close:"Kapat",present:"Şu an",current:"Devam ediyor",apiOffline:"Portfolyo API’sine ulaşılamıyor.",apiHelp:"Go API’yi başlatınca içerikler burada görünecek.",detail:"Detayları gör",role:"Rol",problem:"Problem",overview:"Katkım",highlights:"Öne çıkanlar",outcome:"Sonuç",stack:"Teknolojiler",visit:"Ürün sitesini ziyaret et",source:"GitHub’da incele",openSource:"Açık kaynak"},
-  en:{nav:["About","Experience","Projects","Contact"],navDesc:["Approach, capabilities and résumé","Roles, responsibilities and production work","Products, systems and technical details","For an idea or collaboration"],about:"My technical approach",work:"Selected systems I've built",workNote:"A few systems where I turned complicated operations into calm, dependable products.",experience:"Engineering experience",experienceNote:"A progression through product delivery, technical coordination and production ownership.",education:"Education",skills:"Technical capabilities",certs:"Certifications",library:"View my résumé",libraryNote:"Explore a detailed account of my experience in Turkish or English.",contact:"Let's build something together",open:"Open / download",close:"Close",present:"Present",current:"In progress",apiOffline:"The portfolio API is offline.",apiHelp:"Start the Go API and the content will appear here.",detail:"View details",role:"Role",problem:"Problem",overview:"My contribution",highlights:"Highlights",outcome:"Outcome",stack:"Tech stack",visit:"Visit product site",source:"View on GitHub",openSource:"Open source"}
+  tr:{nav:["Hakkımda","Deneyim","Projeler","İletişim"],navDesc:["Yaklaşımım, yetkinliklerim ve özgeçmişim","Roller, sorumluluklar ve üretim deneyimi","Ürünler, sistemler ve teknik detaylar","Bir fikir veya iş birliği için"],about:"Teknik yaklaşımım",work:"Geliştirdiğim seçkin sistemler",workNote:"Karmaşık iş akışlarını sade, güvenilir ürünlere dönüştürdüğüm bazı çalışmalar.",otherWorks:"Diğer Çalışmalar",otherWorksNote:"Daha küçük ölçekte geliştirdiğim araçlar, deneyler ve teknik üretimler.",experience:"Mühendislik deneyimlerim",experienceNote:"Ürün geliştirme, teknik koordinasyon ve production sorumluluğunun zaman içindeki gelişimi.",education:"Eğitim",skills:"Teknik yetkinlikler",certs:"Sertifikalar",library:"Özgeçmişimi incele",libraryNote:"Deneyimimin ayrıntılı dökümüne Türkçe veya İngilizce ulaşabilirsin.",contact:"Gelin birlikte tasarlayalım",open:"Aç / indir",close:"Kapat",back:"Geri",present:"Şu an",current:"Devam ediyor",apiOffline:"Portfolyo API’sine ulaşılamıyor.",apiHelp:"Go API’yi başlatınca içerikler burada görünecek.",detail:"Detayları gör",role:"Rol",problem:"Problem",overview:"Katkım",highlights:"Öne çıkanlar",outcome:"Sonuç",stack:"Teknolojiler",visit:"Ürün sitesini ziyaret et",source:"GitHub’da incele",openSource:"Açık kaynak"},
+  en:{nav:["About","Experience","Projects","Contact"],navDesc:["Approach, capabilities and résumé","Roles, responsibilities and production work","Products, systems and technical details","For an idea or collaboration"],about:"My technical approach",work:"Selected systems I've built",workNote:"A few systems where I turned complicated operations into calm, dependable products.",otherWorks:"Other Work",otherWorksNote:"Smaller tools, experiments and technical work I've built along the way.",experience:"Engineering experience",experienceNote:"A progression through product delivery, technical coordination and production ownership.",education:"Education",skills:"Technical capabilities",certs:"Certifications",library:"View my résumé",libraryNote:"Explore a detailed account of my experience in Turkish or English.",contact:"Let's build something together",open:"Open / download",close:"Close",back:"Back",present:"Present",current:"In progress",apiOffline:"The portfolio API is offline.",apiHelp:"Start the Go API and the content will appear here.",detail:"View details",role:"Role",problem:"Problem",overview:"My contribution",highlights:"Highlights",outcome:"Outcome",stack:"Tech stack",visit:"Visit product site",source:"View on GitHub",openSource:"Open source"}
 };
 
 function localized(item:Record<string,unknown>,key:string,locale:Locale){return String(item[`${key}_${locale}`]??item[key]??"")}
@@ -57,6 +57,8 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
     {kind:"contact",label:t.nav[3],description:t.navDesc[3],initial:initials[3]},
   ];
   const projects=d.projects||[];
+  const featuredProjects=projects.filter(project=>project.featured===true);
+  const otherProjects=projects.filter(project=>project.featured!==true);
   const cvDocuments=(d.documents||[]).filter(document=>document.category==="cv");
   const emailLink=d.socials.find(link=>link.url.startsWith("mailto:"));
   const otherLinks=d.socials.filter(link=>link!==emailLink);
@@ -98,7 +100,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
         <h1 className="page-h">{t.work}</h1>
         <div className="page-sub">{t.workNote}</div>
         <div className="work-grid">
-          {projects.map((project,index)=>{
+          {featuredProjects.map((project,index)=>{
             const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localizedList(project,"highlights",locale).length||localized(project,"outcome",locale)||project.live_url||project.github_url);
             return <motion.button {...(activeSection==="work"?cardMotion(index):{})} type="button" className="proj-card" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
               <span className="proj-card-inner">
@@ -112,8 +114,20 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
             </motion.button>;
           })}
         </div>
+        {otherProjects.length>0&&<section className="other-work" aria-labelledby="other-work-heading">
+          <div className="other-work-heading"><div><h2 id="other-work-heading">{t.otherWorks}</h2><p>{t.otherWorksNote}</p></div><span>{String(otherProjects.length).padStart(2,"0")}</span></div>
+          <div className="other-work-list">{otherProjects.map((project,index)=>{
+            const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localizedList(project,"highlights",locale).length||localized(project,"outcome",locale)||project.live_url||project.github_url);
+            return <button type="button" className="other-work-item" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
+              <span className="other-work-index">{String(featuredProjects.length+index+1).padStart(2,"0")}</span>
+              <span className="other-work-copy"><strong>{localized(project,"name",locale)}</strong><span>{localized(project,"description",locale)}</span></span>
+              <span className="other-work-tech">{project.tech_stack?.slice(0,3).join(" · ")}</span>
+              {hasDetail&&<span className="other-work-arrow" aria-hidden="true">→</span>}
+            </button>;
+          })}</div>
+        </section>}
       </div>
-      <button type="button" className="page-strip strip-work" onClick={()=>setActiveSection(null)} aria-label={t.close}><span className="strip-monogram" aria-hidden="true">{initials[2]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[2]}</span></button>
+      <button type="button" className="page-strip strip-work" onClick={()=>setActiveSection(null)} aria-label={`${t.back}: ${t.nav[2]}`}><span className="strip-monogram" aria-hidden="true">{initials[2]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[2]}</span></button>
     </div>
 
     <div className={`page section-experience${activeSection==="experience"?" is-active":""}`} role="dialog" aria-modal="true" aria-hidden={activeSection!=="experience"} inert={sectionInert("experience")} aria-label={t.nav[1]}>
@@ -133,7 +147,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
         </div>;
         })}</div>
       </div>
-      <button type="button" className="page-strip strip-experience" onClick={()=>setActiveSection(null)} aria-label={t.close}><span className="strip-monogram" aria-hidden="true">{initials[1]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[1]}</span></button>
+      <button type="button" className="page-strip strip-experience" onClick={()=>setActiveSection(null)} aria-label={`${t.back}: ${t.nav[1]}`}><span className="strip-monogram" aria-hidden="true">{initials[1]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[1]}</span></button>
     </div>
 
     <div className={`page section-about${activeSection==="about"?" is-active":""}`} role="dialog" aria-modal="true" aria-hidden={activeSection!=="about"} inert={sectionInert("about")} aria-label={t.nav[0]}>
@@ -169,7 +183,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
           <div className="resume-actions">{cvDocuments.map((document,index)=><a className={`resume-link${index===0?" is-primary":""}`} href={assetUrl(document.file_url)} target="_blank" rel="noreferrer" key={document.id}>{localized(document,"title",locale)} <span aria-hidden="true">↗</span></a>)}</div>
         </section>}
       </div>
-      <button type="button" className="page-strip strip-about" onClick={()=>setActiveSection(null)} aria-label={t.close}><span className="strip-monogram" aria-hidden="true">{initials[0]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[0]}</span></button>
+      <button type="button" className="page-strip strip-about" onClick={()=>setActiveSection(null)} aria-label={`${t.back}: ${t.nav[0]}`}><span className="strip-monogram" aria-hidden="true">{initials[0]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[0]}</span></button>
     </div>
 
     <div className={`page section-contact contact-page${activeSection==="contact"?" is-active":""}`} role="dialog" aria-modal="true" aria-hidden={activeSection!=="contact"} inert={sectionInert("contact")} aria-label={t.nav[3]}>
@@ -181,7 +195,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
           <div className="ct-links">{otherLinks.map(link=><a className="ct-link" href={link.url} key={link.id} target={link.url.startsWith("http")?"_blank":undefined} rel="noreferrer"><span className="ct-lbl">{localized(link,"label",locale)||link.label}</span><span>{link.url.replace(/^https?:\/\//,"")}</span><span aria-hidden="true">↗</span></a>)}</div>
         </div>
       </div>
-      <button type="button" className="page-strip strip-contact" onClick={()=>setActiveSection(null)} aria-label={t.close}><span className="strip-monogram" aria-hidden="true">{initials[3]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[3]}</span></button>
+      <button type="button" className="page-strip strip-contact" onClick={()=>setActiveSection(null)} aria-label={`${t.back}: ${t.nav[3]}`}><span className="strip-monogram" aria-hidden="true">{initials[3]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[3]}</span></button>
     </div>
 
     <AnimatePresence>

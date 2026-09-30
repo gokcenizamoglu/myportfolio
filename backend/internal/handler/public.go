@@ -25,6 +25,14 @@ func (h *PublicHandler) Portfolio(w http.ResponseWriter, _ *http.Request) {
 			if err := json.Unmarshal([]byte(item.Data), &data); err != nil {
 				continue
 			}
+			// Older project records predate the explicit featured flag. Keep the
+			// first five in the primary grid until an admin makes a deliberate
+			// selection; newer records always persist the field explicitly.
+			if kind == "projects" {
+				if _, exists := data["featured"]; !exists {
+					data["featured"] = item.SortOrder <= 5
+				}
+			}
 			data["id"], data["slug"], data["sort_order"], data["visible"] = item.ID, item.Slug, item.SortOrder, item.Visible
 			output = append(output, data)
 		}
