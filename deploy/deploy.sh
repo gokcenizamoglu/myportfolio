@@ -50,6 +50,12 @@ fi
 echo "[up] starting stack ..."
 $COMPOSE up -d
 
+# The Caddyfile is a bind mount, so `up -d` alone won't apply changes to it.
+# Gracefully reload Caddy's config (falls back to a restart if reload fails).
+echo "[caddy] reloading config ..."
+$COMPOSE exec -T caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null \
+  || $COMPOSE restart caddy
+
 echo
 $COMPOSE ps
 echo
