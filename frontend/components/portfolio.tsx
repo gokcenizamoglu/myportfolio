@@ -99,12 +99,23 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
       <div className="page-body">
         <h1 className="page-h">{t.work}</h1>
         <div className="page-sub">{t.workNote}</div>
+        {otherProjects.length>0&&<details className="other-work">
+          <summary className="other-work-summary"><span className="other-work-intro"><strong>{t.otherWorks}</strong><span>{t.otherWorksNote}</span></span><span className="other-work-toggle" aria-hidden="true"/></summary>
+          <div className="other-work-list">{otherProjects.map(project=>{
+            const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localizedList(project,"highlights",locale).length||localized(project,"outcome",locale)||project.live_url||project.github_url);
+            return <button type="button" className="other-work-item" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
+              <span className="other-work-copy"><strong>{localized(project,"name",locale)}</strong><span>{localized(project,"description",locale)}</span></span>
+              <span className="other-work-tech">{project.tech_stack?.slice(0,3).join(" · ")}</span>
+              {hasDetail&&<span className="other-work-arrow" aria-hidden="true">→</span>}
+            </button>;
+          })}</div>
+        </details>}
         <div className="work-grid">
           {featuredProjects.map((project,index)=>{
             const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localizedList(project,"highlights",locale).length||localized(project,"outcome",locale)||project.live_url||project.github_url);
             return <motion.button {...(activeSection==="work"?cardMotion(index):{})} type="button" className="proj-card" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
               <span className="proj-card-inner">
-                <span className="proj-tag">{String(index+1).padStart(2,"0")}{project.featured&&<span className="proj-star" aria-label="featured">★</span>}{(project.open_source||project.github_url)&&<span className="proj-oss">{t.openSource}</span>}</span>
+                {(project.open_source||project.github_url)&&<span className="proj-oss">{t.openSource}</span>}
                 <span className="proj-name">{localized(project,"name",locale)}</span>
                 <span className="proj-desc">{localized(project,"description",locale)}</span>
                 <span className="proj-meta">{[project.category,project.employer,project.year].filter(Boolean).join(" · ")}</span>
@@ -114,18 +125,6 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
             </motion.button>;
           })}
         </div>
-        {otherProjects.length>0&&<section className="other-work" aria-labelledby="other-work-heading">
-          <div className="other-work-heading"><div><h2 id="other-work-heading">{t.otherWorks}</h2><p>{t.otherWorksNote}</p></div><span>{String(otherProjects.length).padStart(2,"0")}</span></div>
-          <div className="other-work-list">{otherProjects.map((project,index)=>{
-            const hasDetail=Boolean(localized(project,"problem",locale)||localized(project,"body",locale)||localizedList(project,"highlights",locale).length||localized(project,"outcome",locale)||project.live_url||project.github_url);
-            return <button type="button" className="other-work-item" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
-              <span className="other-work-index">{String(featuredProjects.length+index+1).padStart(2,"0")}</span>
-              <span className="other-work-copy"><strong>{localized(project,"name",locale)}</strong><span>{localized(project,"description",locale)}</span></span>
-              <span className="other-work-tech">{project.tech_stack?.slice(0,3).join(" · ")}</span>
-              {hasDetail&&<span className="other-work-arrow" aria-hidden="true">→</span>}
-            </button>;
-          })}</div>
-        </section>}
       </div>
       <button type="button" className="page-strip strip-work" onClick={()=>setActiveSection(null)} aria-label={`${t.back}: ${t.nav[2]}`}><span className="strip-monogram" aria-hidden="true">{initials[2]}</span><span className="strip-x"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg></span><span className="strip-label">{t.nav[2]}</span></button>
     </div>
