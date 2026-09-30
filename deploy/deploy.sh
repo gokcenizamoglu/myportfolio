@@ -25,7 +25,9 @@ $COMPOSE build
 # works regardless of the compose project/volume name.
 if [ -f ./seed-data/portfolio.db ]; then
   echo "[seed] seed-data/ found, checking volume ..."
-  $COMPOSE run --rm --no-deps -e FORCE="${FORCE:-}" \
+  # Run as root so we can read the host seed files regardless of their
+  # permissions, then hand ownership back to the app user.
+  $COMPOSE run --rm --no-deps --user root -e FORCE="${FORCE:-}" \
     --entrypoint sh -v "$(cd ./seed-data && pwd):/seed:ro" api -c '
       set -e
       if [ -f /data/portfolio.db ] && [ -z "$FORCE" ]; then
@@ -38,6 +40,7 @@ if [ -f ./seed-data/portfolio.db ]; then
       [ -f /seed/portfolio.db-shm ] && cp /seed/portfolio.db-shm /data/ || true
       mkdir -p /data/uploads
       [ -d /seed/uploads ] && cp -a /seed/uploads/. /data/uploads/ || true
+      chown -R app /data
       echo "[seed] DB + uploads loaded into volume."
     '
 else
