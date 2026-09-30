@@ -6,6 +6,12 @@
 	email {$ACME_EMAIL}
 }
 
+# Redirect www to the canonical apex domain so everything stays same-origin
+# (keeps the admin cookie and NEXT_PUBLIC_API_URL on one host).
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
+
 {$DOMAIN} {
 	encode zstd gzip
 

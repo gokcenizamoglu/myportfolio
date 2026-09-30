@@ -1,0 +1,33 @@
+name: Deploy
+
+# Auto-deploy on every push to main. Can also be run manually from the
+# Actions tab (workflow_dispatch).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+# Never run two deploys at once; let a running one finish.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: gokceguler.com
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 20m
+          script: |
+            set -e
+            cd ~/portfolio
+            git pull --ff-only origin main
+            bash deploy/deploy.sh
+            docker image prune -f
