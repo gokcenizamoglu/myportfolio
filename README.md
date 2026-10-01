@@ -1,125 +1,122 @@
-# Gökçe Güler Portfolio
+# Gökçe Güler — Portfolio
 
-Next.js + Go ile hazırlanmış, içerikleri tamamen REST API'den gelen portfolyo monoreposu. Tasarım, kökteki `index.html` referansının sıcak fildişi paletini, koyu geometrik navigasyonunu ve editoryal tipografisini korur.
+Production portfolio and content-management system for [gokceguler.com](https://gokceguler.com). The project combines a bilingual Next.js frontend with a Go API, a protected administration interface, SQLite-backed content, privacy-conscious analytics, and automated deployment.
 
-## Yapı
+## Highlights
+
+- Turkish and English portfolio routes with localized content and project pages
+- Admin interface for projects, experience, education, certifications, skills, documents, media, and site settings
+- Secure PDF and image uploads with content-type validation
+- Review-first CV import workflow powered by Google Gemini
+- First-party analytics with anonymous, rotating visitor identifiers and 90-day retention
+- Dynamic metadata, canonical URLs, language alternates, sitemap, robots policy, Open Graph imagery, and JSON-LD
+- Automated tests, linting, type checking, production builds, and deployment through GitHub Actions
+- Docker Compose production stack with Caddy-managed HTTPS
+
+## Architecture
+
+```text
+Browser
+  └─ Caddy (HTTPS and path routing)
+      ├─ Next.js frontend
+      │   ├─ /tr and /en portfolio routes
+      │   └─ /admin content-management interface
+      └─ Go REST API
+          ├─ SQLite content and analytics
+          ├─ uploaded media and documents
+          └─ optional Gemini CV analysis
+```
+
+The production deployment uses same-origin routing: Caddy sends application pages to Next.js and API requests to the Go service. SQLite data and uploaded media live in a persistent Docker volume.
+
+## Technology
+
+| Area | Stack |
+| --- | --- |
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS, Framer Motion |
+| Backend | Go 1.23, chi, sqlx |
+| Data | SQLite, versioned SQL migrations |
+| Infrastructure | Docker Compose, Caddy, GitHub Actions |
+| Integrations | Google Gemini API, Open Graph, JSON-LD |
+
+## Repository structure
 
 ```text
 portfolio/
-├── frontend/                 # Next.js 15, TypeScript, Tailwind, Motion
-│   ├── app/                  # public site + /admin
-│   ├── components/
-│   └── public/brand/         # iki logo varyasyonu
-├── backend/                  # Go REST API
-│   ├── cmd/server/
-│   └── internal/
-│       ├── handler/
-│       ├── middleware/
-│       ├── model/
-│       └── store/migrations/
-├── .github/workflows/ci.yml
-├── docker-compose.yml
-└── index.html                # orijinal tasarım referansı
+├── backend/                 # Go API, migrations, validation, and tests
+├── frontend/                # Next.js site, admin interface, and assets
+├── deploy/                  # VM provisioning and deployment scripts
+├── .github/workflows/       # CI and production deployment
+├── Caddyfile                # HTTPS and reverse-proxy configuration
+├── docker-compose.yml       # local container stack
+└── docker-compose.prod.yml  # production stack
 ```
 
-## Özellikler
+## Local development
 
-- Public API: projects, experiences, education, certifications, skills, contact/social links, indirilebilir belgeler ve site settings.
-- `/admin`: tüm içerik tipleri için oluşturma, listeleme, düzenleme, görünürlük ve silme.
-- `/tr` ve `/en`: URL tabanlı Türkçe/İngilizce deneyim. Yönetim panelindeki iki dilli alanlar aynı içeriğin iki karşılığını tutar.
-- Admin medya yükleme: iki logo, dört ana menü görseli, CV, sertifika ve ek dosyalar. Desteklenen türler PNG, JPG, WEBP ve PDF; üst sınır 16 MB. Uzantı yeterli değil — dosyanın gerçek içeriği sniff edilip uzantısıyla eşleşmezse reddedilir.
-- Auth: bcrypt parola, rastgele 256-bit oturum anahtarı, veritabanında yalnızca SHA-256 hash, HttpOnly/SameSite cookie.
-- SQLite WAL, sıralı ve geri alınabilir SQL migration dosyaları.
-- Next.js public sayfasında API dışı portfolyo içeriği yoktur; API kapalıysa açık bir durum ekranı gösterilir.
-- Responsive tasarım ve Framer Motion giriş animasyonları.
+### Backend
 
-## Yerel geliştirme
-
-### 1. Backend
-
-Go 1.23+ gerekir.
+Requirements: Go 1.23 or newer.
 
 ```bash
 cd backend
 cp .env.example .env
-go mod tidy
-go run ./cmd/server --seed
-go run ./cmd/server --create-admin="admin:en-az-12-karakter-parola"
-go run ./cmd/server
+go mod download
+go run ./cmd/server --seed --create-admin="admin:replace-with-a-long-password"
 ```
 
-İlk iki komut aynı veritabanı yolunu kullanır. Varsayılan adres `http://localhost:8080`; health check `/healthz`, public içerik `/api/v1/portfolio`.
+The API starts at `http://localhost:8080`. Its health endpoint is available at `/healthz`, and public portfolio data at `/api/v1/portfolio`.
 
-Testler ve statik kontrol:
+### Frontend
 
-```bash
-go test ./...
-go vet ./...
-```
-
-### 2. Frontend
+Requirements: Node.js 20 or newer.
 
 ```bash
 cd frontend
 cp .env.example .env.local
-npm install
+npm ci
 npm run dev
 ```
 
-Türkçe site `http://localhost:3000/tr`, İngilizce site `http://localhost:3000/en`, admin `http://localhost:3000/admin` adresindedir.
+Open:
 
-Admin panelindeki **Site ve marka** bölümünden küçük logo ile ana “Gökçe Güler” logosu ayrı ayrı yüklenebilir. Aynı bölümde Boots4 düzenindeki dört navigasyon kutusunun arka plan görselleri yönetilir. **Ekler ve CV** bölümünden yeni CV, portfolyo eki veya PDF eklenebilir; sertifika kayıtlarının kendi dosya alanı da vardır.
+- `http://localhost:3000/tr` — Turkish portfolio
+- `http://localhost:3000/en` — English portfolio
+- `http://localhost:3000/admin` — administration interface
 
-### CV içe aktarma (Gemini)
+## Quality checks
 
-Admin panelinde CV PDF'i yükleyin, CV'nin dilini seçin ve önerilen değişikliklerin renk kodlu diff'ini inceleyin. Her alan için kabul et / düzenle / atla seçeneğini kullanın, ardından uygulayın. `POST /api/v1/admin/cv/import` yalnızca öneri (diff taslağı) üretir; veritabanına yazmaz.
+```bash
+# Backend
+cd backend
+go vet ./...
+go test ./...
 
-Ortam değişkenleri: `GEMINI_API_KEY` (boş bırakılırsa özellik devre dışıdır, endpoint 503 döner) ve `GEMINI_MODEL`.
+# Frontend
+cd frontend
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
-**Gizlilik notu:** Yüklenen CV, içerik çıkarımı için Google'ın Gemini API'sine gönderilir. Bu, yöneticinin kendi belgesidir ve yalnızca açık bir eylemle (yükleme) gönderilir. `GEMINI_API_KEY` boş bırakılırsa hiçbir veri gönderilmez.
+The CI workflow runs the backend and frontend checks on every push to `main` and on pull requests.
 
-Not: Çıkarım süresine yer açmak için istek zaman aşımı (chi `Timeout` ve `WriteTimeout`) 90 sn'ye çıkarıldı; production'da gerçek limitleri reverse proxy belirler.
+## Production deployment
 
-## API özeti
+Production runs on a single Linux host with Caddy, Next.js, the Go API, and persistent Docker volumes. Pushes to `main` trigger the deployment workflow, which connects to the host over SSH and runs the checked-in deployment script.
 
-| Method | Endpoint | Amaç |
-|---|---|---|
-| GET | `/api/v1/portfolio` | Yayındaki tüm portfolyo içeriği |
-| POST | `/api/v1/admin/login` | Admin oturumu aç |
-| POST | `/api/v1/admin/logout` | Oturumu kapat |
-| POST | `/api/v1/admin/media` | Logo, görsel veya PDF yükle |
-| GET/POST | `/api/v1/admin/content/{kind}` | Listele / oluştur |
-| PUT/DELETE | `/api/v1/admin/content/{kind}/{id}` | Güncelle / sil |
-| GET/PUT | `/api/v1/admin/settings` | Site ayarlarını listele / ekle-güncelle |
-| DELETE | `/api/v1/admin/settings/{key}` | Bir site ayarını sil |
-| POST | `/api/v1/admin/cv/import` | CV'den içerik önerileri üret (yazmaz) |
+See [deploy/DEPLOY.md](deploy/DEPLOY.md) for initial provisioning, environment configuration, backups, logs, and recovery commands.
 
-`kind`: `projects`, `experiences`, `education`, `certifications`, `skills`, `socials`, `documents`.
+## Security and privacy
 
-## Güvenlik
+- Admin passwords are hashed with bcrypt.
+- Session tokens are random, stored as SHA-256 hashes, and delivered through HttpOnly cookies.
+- Login attempts are rate-limited by client IP.
+- Uploads are size-limited and validated using both file extension and detected content type.
+- SVG uploads are rejected to avoid stored-XSS risks.
+- SQL queries are parameterized and API inputs are validated against allowlists and length limits.
+- Analytics identifiers are derived from a server-side secret, rotate daily, and are retained for 90 days.
+- CV files are sent to Google Gemini only when an administrator explicitly starts an import; leaving `GEMINI_API_KEY` empty disables the feature.
 
-Backend küçük ama saldırı yüzeyi ciddiye alınarak kuruldu:
-
-- **Parola & oturum:** bcrypt hash, en az 12 karakterlik admin parolası zorunlu. Oturum anahtarı 256-bit rastgele; veritabanında yalnızca SHA-256 hash tutulur, sızan bir satır doğrudan replay edilemez. Cookie HttpOnly + SameSite=Lax, production'da Secure.
-- **Brute-force:** login endpoint'i IP başına dakikada 8 denemeyle sınırlı (bağımlılıksız, in-memory sliding window).
-- **Kullanıcı enumeration:** olmayan kullanıcıda da dummy bir bcrypt karşılaştırması yapılır; yanıt süresi geçerli/geçersiz kullanıcıyı ele vermez.
-- **Girdi doğrulama:** tüm istek gövdelerinde boyut sınırı, slug ve setting-key regex doğrulaması, `kind` allowlist'i, parametreli SQL (injection yok).
-- **Upload:** uzantı allowlist'i + gerçek içerik sniff + rastgele isim + `O_EXCL`; SVG kabul edilmez (stored-XSS vektörü). Servis tarafında `filepath.Base` ile path traversal koruması, `X-Content-Type-Options: nosniff`.
-- **HTTP başlıkları:** `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-site` global uygulanır.
-- **Sunucu:** tüm read/write/idle timeout'ları set, panic recovery, CORS yalnızca yapılandırılan origin'lere açık.
-
-> Not: rate limiter, chi `RealIP` middleware'inin çözdüğü istemci IP'sine güvenir; production'da güvenilir bir reverse proxy arkasında çalıştırılmalıdır.
-
-## Ortam değişkenleri
-
-Backend: `PORT`, `APP_ENV`, `DATABASE_PATH`, `CORS_ORIGINS`, `GEMINI_API_KEY` (opsiyonel; boşsa CV içe aktarma kapalı), `GEMINI_MODEL` (varsayılan: `gemini-2.5-flash`).
-
-Frontend: `API_URL` sunucu tarafı erişimi, `NEXT_PUBLIC_API_URL` tarayıcı/admin erişimi için kullanılır. Production ortamında ikisini de gerçek HTTPS adreslerine göre ayarlayın.
-
-## CI ve yayın planı
-
-CI her push/PR'da frontend typecheck + production build; backend vet + test + build çalıştırır. Sonraki yayın aşamasında Docker image'ları registry'ye gönderilip staging health check'i ardından production deploy yapılabilir. Production'da TLS reverse proxy, yedeklenen kalıcı volume ve yalnızca frontend origin'ine izin veren CORS ayarı kullanılmalıdır.
-
-## Marka varlıkları
-
-Yüklenen iki ayrı logo dosyası çalışma alanında bulunamadığı için `design-prompt.md` içindeki tarif temel alınarak iki SVG rekonstrüksiyonu oluşturuldu. Orijinal dosyalar elde edildiğinde aynı adlarla `frontend/public/brand/logo-script.svg` ve `logo-wordmark.svg` üzerine konularak kod değişmeden kullanılabilir.
+Secrets and runtime data are intentionally excluded from Git. Use the checked-in `.env.example` files as configuration references.
