@@ -2,6 +2,7 @@
 import {motion,MotionProps} from "framer-motion";
 import type {Certification,Education,Experience,Project,SkillGroup,Social} from "@/lib/types";
 import {Copy,Locale,assetUrl,localized,localizedList} from "./copy";
+import {apiBase} from "@/lib/api";
 
 type BaseProps={t:Copy;locale:Locale;active:boolean;inert:boolean|undefined;initial:string;onClose:()=>void};
 
@@ -102,7 +103,7 @@ export function AboutSection({t,locale,active,inert,initial,onClose,settingsText
       </div>
       {cvDocuments.length>0&&<section className="resume-cta" aria-labelledby="resume-heading">
         <div className="resume-copy"><h2 id="resume-heading">{t.library}</h2><p>{t.libraryNote}</p></div>
-        <div className="resume-actions">{cvDocuments.map((document,index)=><a className={`resume-link${index===0?" is-primary":""}`} href={assetUrl(document.file_url)} target="_blank" rel="noreferrer" key={document.id}>{localized(document,"title",locale)} <span aria-hidden="true">↗</span></a>)}</div>
+        <div className="resume-actions">{cvDocuments.map((document,index)=><a className={`resume-link${index===0?" is-primary":""}`} href={`${apiBase}/api/v1/documents/${encodeURIComponent(document.slug)}/download?locale=${locale}`} target="_blank" rel="noreferrer" key={document.id}>{localized(document,"title",locale)} <span aria-hidden="true">↗</span></a>)}</div>
       </section>}
     </div>
     <CloseStrip variant="about" initial={initial} back={t.back} name={t.nav[0]} onClose={onClose}/>

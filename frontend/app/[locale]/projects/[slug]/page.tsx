@@ -5,6 +5,7 @@ import {getPortfolio,getProject} from "@/lib/api";
 import type {Project} from "@/lib/types";
 import {localeAlternates,projectJsonLd,seoSiteUrl} from "@/lib/seo";
 import {safeExternalUrl} from "@/components/portfolio/copy";
+import AnalyticsTracker from "@/components/portfolio/analytics-tracker";
 
 export const dynamic="force-dynamic";
 type Locale="tr"|"en";
@@ -46,6 +47,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   const blocks=[{key:"problem",label:t.problem},{key:"role",label:t.role},{key:"body",label:t.solution},{key:"outcome",label:t.outcome}] as const;
   const jsonLd=projectJsonLd(project,locale);
   return <main className="project-detail-page">
+    <AnalyticsTracker locale={locale} path={`/${locale}/projects/${project.slug}`} projectSlug={project.slug}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
     <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link">← {t.back}</Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>
     <article className="project-detail-shell">

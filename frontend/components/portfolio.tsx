@@ -7,6 +7,7 @@ import type {PortfolioData,Project} from "@/lib/types";
 import {Locale,copy,assetUrl,localized} from "@/components/portfolio/copy";
 import {AboutSection,ContactSection,ExperienceSection,WorkSection} from "@/components/portfolio/sections";
 import ProjectModal from "@/components/portfolio/project-modal";
+import {trackAnalyticsEvent} from "@/lib/analytics";
 
 type Section="about"|"experience"|"work"|"contact";
 
@@ -19,7 +20,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
   const lastCardRef=useRef<HTMLButtonElement|null>(null);
   const modalCloseRef=useRef<HTMLButtonElement|null>(null);
 
-  useEffect(()=>{document.documentElement.lang=locale},[locale]);
+  useEffect(()=>{document.documentElement.lang=locale;trackAnalyticsEvent("page_view",locale,`/${locale}`)},[locale]);
 
   useEffect(()=>{
     const locked=activeSection||activeProject;
@@ -67,8 +68,8 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
   const cvDocuments=(d.documents||[]).filter(document=>document.category==="cv");
   const emailLink=d.socials.find(link=>link.url.startsWith("mailto:"));
   const otherLinks=d.socials.filter(link=>link!==emailLink);
-  const openSection=(kind:Section,el:HTMLButtonElement|null)=>{lastTileRef.current=el;setActiveSection(kind)};
-  const openProject=(project:Project,el:HTMLButtonElement|null)=>{lastCardRef.current=el;setActiveProject(project)};
+  const openSection=(kind:Section,el:HTMLButtonElement|null)=>{lastTileRef.current=el;setActiveSection(kind);trackAnalyticsEvent("section_view",locale,`/${locale}#${kind}`)};
+  const openProject=(project:Project,el:HTMLButtonElement|null)=>{lastCardRef.current=el;setActiveProject(project);trackAnalyticsEvent("project_view",locale,`/${locale}#projects`,project.slug)};
   // Keep hidden layers out of the tab order: opacity/transform alone leave
   // their links focusable. `inert` removes them for keyboard and AT users.
   const overlayOpen=Boolean(activeSection)||Boolean(activeProject);
