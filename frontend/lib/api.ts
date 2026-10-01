@@ -1,4 +1,4 @@
-import type { PortfolioData } from "./types";
+import type { PortfolioData,Project } from "./types";
 
 export const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -38,4 +38,13 @@ export async function getPortfolio(): Promise<PortfolioData | null> {
   } catch {
     return null;
   }
+}
+
+export async function getProject(slug:string):Promise<Project|null>{
+  try{
+    const response=await fetch(`${process.env.API_URL||apiBase}/api/v1/projects/${encodeURIComponent(slug)}`,{cache:"no-store"});
+    if(response.status===404)return null;
+    if(!response.ok)return null;
+    return response.json();
+  }catch{return null}
 }

@@ -98,6 +98,7 @@ func main() {
 	r.Use(cors.Handler(cors.Options{AllowedOrigins: corsOrigins, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"}, AllowCredentials: true, MaxAge: 300}))
 	r.Get("/healthz", publicHandler.Health)
 	r.Get("/api/v1/portfolio", publicHandler.Portfolio)
+	r.Get("/api/v1/projects/{slug}", publicHandler.Project)
 	r.With(analyticsLimiter.Limit).Post("/api/v1/analytics/events", analyticsHandler.RecordEvent)
 	r.Get("/api/v1/documents/{slug}/download", analyticsHandler.DownloadCV)
 	r.Get("/uploads/{name}", mediaHandler.Serve)

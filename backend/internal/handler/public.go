@@ -1,15 +1,36 @@
 package handler
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gokceguler/portfolio/backend/internal/store"
 )
 
 type PublicHandler struct{ store *store.Store }
 
 func NewPublicHandler(s *store.Store) *PublicHandler { return &PublicHandler{store: s} }
+
+func (h *PublicHandler) Project(w http.ResponseWriter, r *http.Request) {
+	item, err := h.store.GetContentBySlug("projects", chi.URLParam(r, "slug"), true)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			writeError(w, http.StatusNotFound, "project not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "could not load project")
+		return
+	}
+	var data map[string]any
+	if err := json.Unmarshal([]byte(item.Data), &data); err != nil || data == nil {
+		writeError(w, http.StatusNotFound, "project not found")
+		return
+	}
+	data["id"], data["slug"], data["sort_order"], data["visible"] = item.ID, item.Slug, item.SortOrder, item.Visible
+	writeJSON(w, http.StatusOK, data)
+}
 
 func (h *PublicHandler) Portfolio(w http.ResponseWriter, _ *http.Request) {
 	response := map[string]any{}
