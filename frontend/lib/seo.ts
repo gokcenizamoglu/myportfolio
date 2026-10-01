@@ -2,7 +2,7 @@ import type {Project,Social} from "./types";
 
 export type SeoLocale="tr"|"en";
 export const SITE_NAME="Gökçe Güler";
-export const DEFAULT_SITE_URL="http://localhost:3000";
+export const DEFAULT_SITE_URL="https://gokceguler.com";
 export const seoSiteUrl=()=>String(process.env.NEXT_PUBLIC_SITE_URL||DEFAULT_SITE_URL).replace(/\/$/,"");
 
 export function localeAlternates(path=""){

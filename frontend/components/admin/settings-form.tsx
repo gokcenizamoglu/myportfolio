@@ -3,6 +3,7 @@ import {FormEvent} from "react";
 import {LanguageTab,fieldLabel,filterFields,settingFields} from "./schema";
 import {FileField,LanguageTabs} from "./fields";
 import SeoPreview from "./seo-preview";
+import {seoSiteUrl} from "@/lib/seo";
 
 export default function SettingsForm({settings,setSettings,setDirty,uploadForSetting,languageTab,setLanguageTab,dirty,saving,uploading,onSubmit}:{
   settings:Record<string,string>;
@@ -16,7 +17,7 @@ export default function SettingsForm({settings,setSettings,setDirty,uploadForSet
   uploading:string;
   onSubmit:(event:FormEvent)=>void;
 }){
-  const name=settings.name||"Gökçe Güler";const title=settings[`seo_title_${languageTab}`]||[name,settings[`title_${languageTab}`]].filter(Boolean).join(" — ");const description=settings[`seo_description_${languageTab}`]||settings.seo_description||settings[`tagline_${languageTab}`]||"";const canonical=`${process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000"}/${languageTab}`;
+  const name=settings.name||"Gökçe Güler";const title=settings[`seo_title_${languageTab}`]||[name,settings[`title_${languageTab}`]].filter(Boolean).join(" — ");const description=settings[`seo_description_${languageTab}`]||settings.seo_description||settings[`tagline_${languageTab}`]||"";const canonical=`${seoSiteUrl()}/${languageTab}`;
   return <form onSubmit={onSubmit}>
     <div className="toolbar"><div><h1>Site ve marka</h1><p>Metinleri ve görsel kimliği buradan yönet.</p></div></div>
     <div className="editor">

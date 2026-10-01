@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Raleway, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
+import {seoSiteUrl} from "@/lib/seo";
 
 const raleway = Raleway({ subsets: ["latin", "latin-ext"], variable: "--font-raleway" });
 const sourceSans = Source_Sans_3({ subsets: ["latin", "latin-ext"], variable: "--font-source-sans" });
 
-export const metadata:Metadata={metadataBase:new URL(process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000"),applicationName:"Gökçe Güler",title:{default:"Gökçe Güler — Full-Stack Software Engineer",template:"%s — Gökçe Güler"},description:"Software systems from architecture to production.",icons:{icon:[{url:"/brand/ggu.png",type:"image/png"}],apple:"/brand/ggu.png"},openGraph:{siteName:"Gökçe Güler",images:[{url:"/opengraph-image",width:1200,height:630,alt:"Gökçe Güler — Full-Stack Software Engineer"}]},twitter:{card:"summary_large_image",images:["/opengraph-image"]}};
+export const metadata:Metadata={metadataBase:new URL(seoSiteUrl()),applicationName:"Gökçe Güler",title:{default:"Gökçe Güler — Full-Stack Software Engineer",template:"%s — Gökçe Güler"},description:"Software systems from architecture to production.",icons:{icon:[{url:"/brand/ggu.png",type:"image/png"}],apple:"/brand/ggu.png"},openGraph:{siteName:"Gökçe Güler",images:[{url:"/opengraph-image",width:1200,height:630,alt:"Gökçe Güler — Full-Stack Software Engineer"}]},twitter:{card:"summary_large_image",images:["/opengraph-image"]}};
 
 // The locale lives in the URL (/tr, /en), so derive the document language from
 // the pathname that middleware forwards. Reading request headers makes this
