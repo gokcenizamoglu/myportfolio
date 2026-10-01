@@ -2,16 +2,57 @@
 
 Production portfolio and content-management system for [gokceguler.com](https://gokceguler.com). The project combines a bilingual Next.js frontend with a Go API, a protected administration interface, SQLite-backed content, privacy-conscious analytics, and automated deployment.
 
-## Highlights
+## Product capabilities
 
-- Turkish and English portfolio routes with localized content and project pages
-- Admin interface for projects, experience, education, certifications, skills, documents, media, and site settings
-- Secure PDF and image uploads with content-type validation
-- Review-first CV import workflow powered by Google Gemini
-- First-party analytics with anonymous, rotating visitor identifiers and 90-day retention
-- Dynamic metadata, canonical URLs, language alternates, sitemap, robots policy, Open Graph imagery, and JSON-LD
-- Automated tests, linting, type checking, production builds, and deployment through GitHub Actions
-- Docker Compose production stack with Caddy-managed HTTPS
+### Bilingual portfolio
+
+- Dedicated Turkish and English routes with localized navigation, biography, experience, project, education, certification, and contact content
+- Featured-project presentation, additional-work listings, project detail routes, and animated project previews
+- Responsive, keyboard-accessible navigation with reduced-motion support
+- Downloadable localized CVs and certificate attachments
+- Graceful API-offline and not-found states
+
+### Content management
+
+- Authenticated administration interface for projects, experience, education, certifications, skills, social links, documents, and global site settings
+- Create, edit, delete, publish, hide, feature, search, filter, and reorder content without changing source code
+- Side-by-side Turkish and English editing with shared structured fields
+- Image and PDF uploads with previews, size limits, extension allowlists, content sniffing, and randomized storage names
+- Live project-card previews and Google-result previews while editing
+- Content-health scoring with missing-field checks, severity levels, per-language recommendations, and direct links to affected records
+
+### Privacy-conscious analytics
+
+- First-party tracking for page views, section views, project opens, and CV downloads
+- Seven- and 30-day dashboard views with unique visitors, daily traffic, language distribution, most-viewed projects, and engagement totals
+- Daily rotating visitor identifiers derived from a server-side secret; raw IP addresses are not stored
+- Localhost and common bot traffic excluded from reporting
+- Automatic deletion of analytics records older than 90 days
+
+### Review-first CV import
+
+- Turkish or English PDF upload with structured extraction through Google Gemini
+- Matching against existing experience, education, certification, skill, project, and site-text records
+- Field-level before/after diffs that can be accepted, edited, or skipped individually
+- New-record creation, matched-record updates, and explicit handling of records missing from the uploaded CV
+- Existing records are preserved by default; deletion requires a separate selection and confirmation
+- No extracted change is written to the database until the administrator approves and applies it
+
+### SEO and discovery
+
+- Dynamic localized metadata and configurable SEO titles and descriptions
+- Canonical URLs plus `tr`, `en`, and `x-default` language alternates
+- Dynamic sitemap containing visible projects only
+- Configurable robots policy for standard crawlers, OAI-SearchBot, and GPTBot
+- Generated Open Graph imagery and Twitter card metadata
+- `ProfilePage`, `Person`, and project-level structured data through JSON-LD
+
+### Delivery and operations
+
+- Automated backend tests and vetting plus frontend linting, type checking, tests, and production builds
+- GitHub Actions deployment to a Linux host after changes reach `main`
+- Docker Compose services for Caddy, Next.js, and the Go API
+- Automatic HTTPS, HTTP/3 support, persistent application data, health checks, and documented backup procedures
 
 ## Architecture
 
