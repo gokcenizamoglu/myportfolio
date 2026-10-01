@@ -1,14 +1,8 @@
 "use client";
 import {useState} from "react";
 import {apiBase} from "@/lib/api";
-
-type ApiRequest=(path:string,init?:RequestInit)=>Promise<any>;
-type FieldDiff={field:string;old:string;new:string;auto_translated:boolean;changed:boolean};
-type Change={kind:string;action:"create"|"update";matched_id?:number;slug:string;data:Record<string,unknown>;field_diffs:FieldDiff[]};
-type Orphan={kind:string;id:number;slug:string;label:string};
-type Draft={changes:Change[];orphans:Orphan[];settings?:FieldDiff[]};
-const kindLabel:Record<string,string>={experiences:"Deneyim",education:"Eğitim",certifications:"Sertifikalar",skills:"Yetenekler",projects:"Projeler"};
-const settingLabel:Record<string,string>={tagline_tr:"Ana mesaj — Türkçe",tagline_en:"Ana mesaj — English",about_lead_tr:"Hakkımda giriş — Türkçe",about_lead_en:"Hakkımda giriş — English",about_body_tr:"Hakkımda metni — Türkçe",about_body_en:"Hakkımda metni — English"};
+import {ApiRequest,Change,Decision,Draft,Existing,Failure,FieldDiff,OrphanDecision,coerce,kindLabel} from "@/components/cv-import/types";
+import {ChangeCard,SettingCard} from "@/components/cv-import/cards";
 
 export default function CvImport({request}:{request:ApiRequest}){
   const [lang,setLang]=useState<"tr"|"en">("tr");
@@ -39,19 +33,6 @@ export default function CvImport({request}:{request:ApiRequest}){
     </div>
     {draft&&<CvReview draft={draft} request={request}/>}
   </div>;
-}
-
-type Decision="pending"|"accept"|"skip";
-type OrphanDecision="keep"|"delete";
-type Existing={id:number;slug:string;data:Record<string,unknown>;sort_order:number;visible:boolean};
-type Failure={slug:string;message:string};
-
-// Coerce an edited string back to the original value's type; never stringify typed data.
-function coerce(field:string,value:string,original:unknown):unknown{
-  if(Array.isArray(original)||field==="tech_stack"||field==="items")return value.split(",").map(v=>v.trim()).filter(Boolean);
-  if(typeof original==="number")return value.trim()===""?original:(Number.isNaN(Number(value))?value:Number(value));
-  if(typeof original==="boolean")return value==="true";
-  return value;
 }
 
 function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
@@ -91,7 +72,7 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
     const brokenKinds:Record<string,string>={};
     for(const kind of kinds){
       try{
-        const list:Existing[]=await request(`/api/v1/admin/content/${kind}`);
+        const list=await request<Existing[]>(`/api/v1/admin/content/${kind}`);
         existingByKind[kind]={byId:new Map(list.map(x=>[x.id,x])),maxOrder:Math.max(0,...list.map(x=>x.sort_order??0))};
       }catch(e){brokenKinds[kind]=(e as Error).message||"Mevcut kayıtlar okunamadı"}
     }
@@ -133,7 +114,7 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
     }
     if(pendingSettings.length>0){
       try{
-        const current:Record<string,string>=await request("/api/v1/admin/settings");
+        const current=await request<Record<string,string>>("/api/v1/admin/settings");
         const next={...current};
         for(const i of pendingSettings)next[settingDiffs[i].field]=settingEdits[i]??settingDiffs[i].new;
         await request("/api/v1/admin/settings",{method:"PUT",body:JSON.stringify(next)});
@@ -183,50 +164,5 @@ function CvReview({draft,request}:{draft:Draft;request:ApiRequest}){
     {failures.length>0&&<div className="error" role="alert"><strong>Başarısız olanlar:</strong>
       <ul>{failures.map((f,k)=><li key={k}>{f.slug}: {f.message}</li>)}</ul>
     </div>}
-  </div>;
-}
-
-function SettingCard({diff,decision,done,value,onValue,onDecision}:{diff:FieldDiff;decision:Decision;done:boolean;value:string;onValue:(value:string)=>void;onDecision:(decision:Decision)=>void}){
-  return <div className={`cv-card cv-setting-card ${decision}${done?" done":""}`}>
-    <div className="cv-card-head">
-      <span className="cv-badge cv-update">AYAR</span>
-      <strong>{settingLabel[diff.field]||diff.field}</strong>
-      {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
-      {!done&&decision==="accept"&&<span className="cv-badge cv-accepted-tag">kabul edildi</span>}
-      {!done&&decision==="skip"&&<span className="cv-badge cv-skipped-tag">atlanacak</span>}
-      {!done&&decision==="pending"&&<span className="cv-badge cv-pending-tag">bekliyor</span>}
-      <div className="cv-card-actions">
-        <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
-        <button type="button" aria-pressed={decision==="skip"} disabled={done} className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>
-      </div>
-    </div>
-    {diff.old&&<div className="cv-old">- {diff.old}</div>}
-    <textarea className="cv-new" aria-label={settingLabel[diff.field]||diff.field} disabled={done} value={value} onChange={e=>onValue(e.target.value)}/>
-    {diff.auto_translated&&<span className="cv-flag">otomatik çeviri</span>}
-  </div>;
-}
-
-function ChangeCard({change,index,decision,done,slug,onSlug,onDecision,valueFor,onEdit}:{change:Change;slug:string;onSlug:(v:string)=>void;index:number;decision:Decision;done:boolean;onDecision:(d:Decision)=>void;valueFor:(i:number,d:FieldDiff)=>string;onEdit:(i:number,field:string,value:string)=>void}){
-  const visible=change.field_diffs.filter(d=>d.changed);
-  return <div className={`cv-card ${decision}${done?" done":""}`}>
-    <div className="cv-card-head">
-      <span className={`cv-badge cv-${change.action}`}>{change.action==="create"?"YENİ":"GÜNCELLEME"}</span>
-      <input className="cv-slug" aria-label="slug" disabled={done} value={slug} onChange={e=>onSlug(e.target.value)}/>
-      {done&&<span className="cv-badge cv-done-tag">uygulandı</span>}
-      {!done&&decision==="accept"&&<span className="cv-badge cv-accepted-tag">kabul edildi</span>}
-      {!done&&decision==="skip"&&<span className="cv-badge cv-skipped-tag">atlanacak</span>}
-      {!done&&decision==="pending"&&<span className="cv-badge cv-pending-tag">bekliyor</span>}
-      <div className="cv-card-actions">
-        <button type="button" aria-pressed={decision==="accept"} disabled={done} className={decision==="accept"?"primary":"secondary"} onClick={()=>onDecision("accept")}>Kabul</button>
-        <button type="button" aria-pressed={decision==="skip"} disabled={done} className={decision==="skip"?"danger":"secondary"} onClick={()=>onDecision("skip")}>Atla</button>
-      </div>
-    </div>
-    <div className="cv-fields">
-      {visible.map(diff=><div key={diff.field} className="cv-field">
-        <div className="cv-field-key">{diff.field}{diff.auto_translated&&<span className="cv-flag">otomatik çeviri</span>}</div>
-        {change.action==="update"&&diff.old&&<div className="cv-old">- {diff.old}</div>}
-        <textarea className="cv-new" aria-label={diff.field} disabled={done} value={valueFor(index,diff)} onChange={e=>onEdit(index,diff.field,e.target.value)}/>
-      </div>)}
-    </div>
   </div>;
 }

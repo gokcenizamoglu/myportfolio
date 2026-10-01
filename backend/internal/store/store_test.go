@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -66,6 +67,23 @@ func TestContentRejectsUnknownKind(t *testing.T) {
 	}
 }
 
+func TestDeleteContentReportsMissingAndUnknownKind(t *testing.T) {
+	s := newTestStore(t)
+	if err := s.DeleteContent("projects", 999); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected ErrNotFound for a missing row, got %v", err)
+	}
+	if err := s.DeleteContent("malicious", 1); !errors.Is(err, ErrUnknownKind) {
+		t.Fatalf("expected ErrUnknownKind for a bad kind, got %v", err)
+	}
+	item := &model.ContentItem{Kind: "projects", Slug: "real", Visible: true}
+	if err := s.CreateContent(item); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if err := s.DeleteContent("projects", item.ID); err != nil {
+		t.Fatalf("expected a present row to delete cleanly, got %v", err)
+	}
+}
+
 func TestVisibleOnlyFiltersHiddenItems(t *testing.T) {
 	s := newTestStore(t)
 	_ = s.CreateContent(&model.ContentItem{Kind: "projects", Slug: "shown", Visible: true})
@@ -78,6 +96,32 @@ func TestVisibleOnlyFiltersHiddenItems(t *testing.T) {
 	visible, _ := s.ListContent("projects", true)
 	if len(visible) != 1 || visible[0].Slug != "shown" {
 		t.Fatalf("expected only the visible item, got %+v", visible)
+	}
+}
+
+func TestReorderContentIsAtomicAndNormalizesOrder(t *testing.T) {
+	s := newTestStore(t)
+	first := &model.ContentItem{Kind: "projects", Slug: "first", SortOrder: 10, Visible: true}
+	second := &model.ContentItem{Kind: "projects", Slug: "second", SortOrder: 20, Visible: true}
+	third := &model.ContentItem{Kind: "projects", Slug: "third", SortOrder: 30, Visible: true}
+	for _, item := range []*model.ContentItem{first, second, third} {
+		if err := s.CreateContent(item); err != nil {
+			t.Fatalf("create: %v", err)
+		}
+	}
+	if err := s.ReorderContent("projects", []int64{third.ID, first.ID, second.ID}); err != nil {
+		t.Fatalf("reorder: %v", err)
+	}
+	items, _ := s.ListContent("projects", false)
+	if items[0].ID != third.ID || items[0].SortOrder != 1 || items[2].ID != second.ID || items[2].SortOrder != 3 {
+		t.Fatalf("unexpected reordered items: %+v", items)
+	}
+	if err := s.ReorderContent("projects", []int64{first.ID, first.ID, third.ID}); err == nil {
+		t.Fatal("expected duplicate ids to fail")
+	}
+	items, _ = s.ListContent("projects", false)
+	if items[0].ID != third.ID || items[2].ID != second.ID {
+		t.Fatalf("failed reorder should leave order unchanged: %+v", items)
 	}
 }
 

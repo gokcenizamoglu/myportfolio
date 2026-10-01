@@ -12,13 +12,19 @@ import (
 
 var AllowedKinds = map[string]bool{"projects": true, "experiences": true, "education": true, "certifications": true, "skills": true, "socials": true, "documents": true}
 
+// ErrUnknownKind is returned when a content kind is not in the allowlist.
+var ErrUnknownKind = errors.New("unknown content type")
+
+// ErrNotFound is returned when an operation targets a row that does not exist.
+var ErrNotFound = errors.New("not found")
+
 type Store struct{ db *sqlx.DB }
 
 func New(db *sqlx.DB) *Store { return &Store{db: db} }
 
 func (s *Store) ListContent(kind string, visibleOnly bool) ([]model.ContentItem, error) {
 	if !AllowedKinds[kind] {
-		return nil, errors.New("unknown content type")
+		return nil, ErrUnknownKind
 	}
 	query := "SELECT * FROM content_items WHERE kind = ?"
 	if visibleOnly {
@@ -36,7 +42,7 @@ func (s *Store) GetContent(kind string, id int64) (*model.ContentItem, error) {
 
 func (s *Store) CreateContent(item *model.ContentItem) error {
 	if !AllowedKinds[item.Kind] {
-		return errors.New("unknown content type")
+		return ErrUnknownKind
 	}
 	result, err := s.db.NamedExec(`INSERT INTO content_items(kind,slug,data,sort_order,visible) VALUES(:kind,:slug,:data,:sort_order,:visible)`, item)
 	if err != nil {
@@ -51,9 +57,51 @@ func (s *Store) UpdateContent(item *model.ContentItem) error {
 	return err
 }
 
+func (s *Store) ReorderContent(kind string, ids []int64) error {
+	if !AllowedKinds[kind] {
+		return ErrUnknownKind
+	}
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var count int
+	if err := tx.Get(&count, "SELECT COUNT(*) FROM content_items WHERE kind = ?", kind); err != nil {
+		return err
+	}
+	if count != len(ids) {
+		return errors.New("reorder list must contain every item")
+	}
+	seen := make(map[int64]bool, len(ids))
+	for index, id := range ids {
+		if id <= 0 || seen[id] {
+			return errors.New("reorder list contains an invalid or duplicate id")
+		}
+		seen[id] = true
+		result, err := tx.Exec("UPDATE content_items SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE kind = ? AND id = ?", index+1, kind, id)
+		if err != nil {
+			return err
+		}
+		if affected, _ := result.RowsAffected(); affected != 1 {
+			return errors.New("reorder list contains an unknown item")
+		}
+	}
+	return tx.Commit()
+}
+
 func (s *Store) DeleteContent(kind string, id int64) error {
-	_, err := s.db.Exec("DELETE FROM content_items WHERE kind = ? AND id = ?", kind, id)
-	return err
+	if !AllowedKinds[kind] {
+		return ErrUnknownKind
+	}
+	result, err := s.db.Exec("DELETE FROM content_items WHERE kind = ? AND id = ?", kind, id)
+	if err != nil {
+		return err
+	}
+	if affected, _ := result.RowsAffected(); affected == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (s *Store) AllSettings() (map[string]string, error) {

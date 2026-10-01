@@ -97,6 +97,63 @@ func TestCreateContentValidatesSlug(t *testing.T) {
 	}
 }
 
+func TestCreateContentRejectsNullData(t *testing.T) {
+	h := newTestHandler(t)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/content/projects", bytes.NewReader([]byte(`{"slug":"valid-slug","data":null}`)))
+	req = withURLParam(req, "kind", "projects")
+	rec := httptest.NewRecorder()
+	h.CreateContent(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for null data, got %d (%s)", rec.Code, rec.Body.String())
+	}
+}
+
+func TestCreateContentRejectsMistypedField(t *testing.T) {
+	h := newTestHandler(t)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/content/projects", bytes.NewReader([]byte(`{"slug":"valid-slug","data":{"name_tr":"Ok","tech_stack":"not-a-list"}}`)))
+	req = withURLParam(req, "kind", "projects")
+	rec := httptest.NewRecorder()
+	h.CreateContent(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for a mistyped field, got %d (%s)", rec.Code, rec.Body.String())
+	}
+}
+
+func TestDeleteContentMissingReturns404(t *testing.T) {
+	h := newTestHandler(t)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/content/projects/999", nil)
+	req = withURLParam(req, "kind", "projects")
+	req = withURLParam(req, "id", "999")
+	rec := httptest.NewRecorder()
+	h.DeleteContent(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 for a missing record, got %d", rec.Code)
+	}
+}
+
+func TestDeleteContentUnknownKindReturns404(t *testing.T) {
+	h := newTestHandler(t)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/content/malicious/1", nil)
+	req = withURLParam(req, "kind", "malicious")
+	req = withURLParam(req, "id", "1")
+	rec := httptest.NewRecorder()
+	h.DeleteContent(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 for an unknown kind, got %d", rec.Code)
+	}
+}
+
+func TestContentOutputHandlesNullDataWithoutPanic(t *testing.T) {
+	out := contentOutput(model.ContentItem{Kind: "projects", Data: `null`, SortOrder: 1})
+	data, ok := out["data"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected a data map, got %T", out["data"])
+	}
+	if data["featured"] != true {
+		t.Fatal("legacy null-data project in the first five should default to featured")
+	}
+}
+
 func TestContentOutputDefaultsLegacyProjectFeaturedState(t *testing.T) {
 	featured := contentOutput(model.ContentItem{Kind: "projects", Data: `{}`, SortOrder: 5})
 	if featured["data"].(map[string]any)["featured"] != true {

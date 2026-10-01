@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 	authmw "github.com/gokceguler/portfolio/backend/internal/middleware"
 	"github.com/gokceguler/portfolio/backend/internal/model"
 	"github.com/gokceguler/portfolio/backend/internal/store"
+	"github.com/gokceguler/portfolio/backend/internal/validate"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -84,6 +86,22 @@ type contentRequest struct {
 	Visible   *bool          `json:"visible"`
 }
 
+// decodeContentRequest reads, structurally checks and validates a content
+// payload. It writes the appropriate error response and returns ok=false on any
+// failure, keeping the create and update handlers free of parsing concerns.
+func (h *AdminHandler) decodeContentRequest(w http.ResponseWriter, r *http.Request, kind string) (contentRequest, bool) {
+	var request contentRequest
+	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 2<<20)).Decode(&request) != nil || !slugPattern.MatchString(request.Slug) {
+		writeError(w, 400, "valid slug and data are required")
+		return request, false
+	}
+	if err := validate.Content(kind, request.Data); err != nil {
+		writeError(w, 400, err.Error())
+		return request, false
+	}
+	return request, true
+}
+
 func (h *AdminHandler) ListContent(w http.ResponseWriter, r *http.Request) {
 	kind := chi.URLParam(r, "kind")
 	items, err := h.store.ListContent(kind, false)
@@ -100,9 +118,8 @@ func (h *AdminHandler) ListContent(w http.ResponseWriter, r *http.Request) {
 
 func (h *AdminHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 	kind := chi.URLParam(r, "kind")
-	var request contentRequest
-	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 2<<20)).Decode(&request) != nil || !slugPattern.MatchString(request.Slug) {
-		writeError(w, 400, "valid slug and data are required")
+	request, ok := h.decodeContentRequest(w, r, kind)
+	if !ok {
 		return
 	}
 	data, _ := json.Marshal(request.Data)
@@ -130,9 +147,8 @@ func (h *AdminHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 404, "not found")
 		return
 	}
-	var request contentRequest
-	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 2<<20)).Decode(&request) != nil || !slugPattern.MatchString(request.Slug) {
-		writeError(w, 400, "valid slug and data are required")
+	request, ok := h.decodeContentRequest(w, r, kind)
+	if !ok {
 		return
 	}
 	data, _ := json.Marshal(request.Data)
@@ -149,13 +165,35 @@ func (h *AdminHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, contentOutput(*item))
 }
 
+func (h *AdminHandler) ReorderContent(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		IDs []int64 `json:"ids"`
+	}
+	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request) != nil || len(request.IDs) == 0 || len(request.IDs) > 1000 {
+		writeError(w, 400, "a valid ordered id list is required")
+		return
+	}
+	if err := h.store.ReorderContent(chi.URLParam(r, "kind"), request.IDs); err != nil {
+		writeError(w, 400, err.Error())
+		return
+	}
+	writeJSON(w, 200, map[string]any{"ids": request.IDs})
+}
+
 func (h *AdminHandler) DeleteContent(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		writeError(w, 400, "invalid id")
 		return
 	}
-	if err := h.store.DeleteContent(chi.URLParam(r, "kind"), id); err != nil {
+	switch err := h.store.DeleteContent(chi.URLParam(r, "kind"), id); {
+	case errors.Is(err, store.ErrUnknownKind):
+		writeError(w, 404, "unknown content type")
+		return
+	case errors.Is(err, store.ErrNotFound):
+		writeError(w, 404, "not found")
+		return
+	case err != nil:
 		writeError(w, 400, err.Error())
 		return
 	}
@@ -207,6 +245,11 @@ func (h *AdminHandler) DeleteSetting(w http.ResponseWriter, r *http.Request) {
 func contentOutput(item model.ContentItem) map[string]any {
 	var data map[string]any
 	_ = json.Unmarshal([]byte(item.Data), &data)
+	// A stored "null", empty blob or malformed JSON leaves the map nil; writing
+	// into a nil map panics, so normalise it before deriving fields below.
+	if data == nil {
+		data = map[string]any{}
+	}
 	if item.Kind == "projects" {
 		if _, exists := data["featured"]; !exists {
 			data["featured"] = item.SortOrder <= 5

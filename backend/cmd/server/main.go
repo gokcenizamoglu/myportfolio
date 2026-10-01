@@ -95,6 +95,7 @@ func main() {
 		r.Post("/api/v1/admin/cv/import", cvImportHandler.Import)
 		r.Get("/api/v1/admin/content/{kind}", adminHandler.ListContent)
 		r.Post("/api/v1/admin/content/{kind}", adminHandler.CreateContent)
+		r.Put("/api/v1/admin/content/{kind}/reorder", adminHandler.ReorderContent)
 		r.Put("/api/v1/admin/content/{kind}/{id}", adminHandler.UpdateContent)
 		r.Delete("/api/v1/admin/content/{kind}/{id}", adminHandler.DeleteContent)
 		r.Get("/api/v1/admin/settings", adminHandler.GetSettings)

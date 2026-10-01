@@ -25,6 +25,12 @@ func (h *PublicHandler) Portfolio(w http.ResponseWriter, _ *http.Request) {
 			if err := json.Unmarshal([]byte(item.Data), &data); err != nil {
 				continue
 			}
+			// A stored "null" unmarshals without error but leaves the map nil;
+			// writing the derived fields below into a nil map would panic and take
+			// down the whole public endpoint, so normalise it first.
+			if data == nil {
+				data = map[string]any{}
+			}
 			// Older project records predate the explicit featured flag. Keep the
 			// first five in the primary grid until an admin makes a deliberate
 			// selection; newer records always persist the field explicitly.
