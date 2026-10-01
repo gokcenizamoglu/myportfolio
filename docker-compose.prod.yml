@@ -38,6 +38,8 @@ services:
       DATABASE_PATH: /data/portfolio.db
       UPLOAD_DIR: /data/uploads
       CORS_ORIGINS: https://${DOMAIN}
+      PUBLIC_SITE_URL: https://${DOMAIN}
+      ANALYTICS_HASH_SECRET: ${ANALYTICS_HASH_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
     volumes:

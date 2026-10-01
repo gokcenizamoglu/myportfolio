@@ -7,7 +7,6 @@ package validate
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 // ErrNilData is returned when the request omits the data object or sends null.
@@ -56,7 +55,7 @@ var contentSchemas = map[string]schema{
 	},
 	"certifications": {
 		title:         "name",
-		bilingualText: []string{"name"},
+		bilingualText: []string{"name", "description"},
 		strings:       []string{"issuer", "year", "attachment_url"},
 	},
 	"skills": {
@@ -125,14 +124,6 @@ func Content(kind string, data map[string]any) error {
 			}
 		}
 	}
-	if sc.title != "" && !hasBilingualValue(data, sc.title) {
-		return fmt.Errorf("%s is required", sc.title)
-	}
-	for _, key := range sc.required {
-		if !nonEmptyString(data[key]) {
-			return fmt.Errorf("%s is required", key)
-		}
-	}
 	return nil
 }
 
@@ -154,15 +145,4 @@ func expectStringList(key string, value any) error {
 		}
 	}
 	return nil
-}
-
-// hasBilingualValue reports whether a bilingual base field carries a non-empty
-// string in either language (or in the bare key, for legacy records).
-func hasBilingualValue(data map[string]any, base string) bool {
-	return nonEmptyString(data[base+"_tr"]) || nonEmptyString(data[base+"_en"]) || nonEmptyString(data[base])
-}
-
-func nonEmptyString(value any) bool {
-	text, ok := value.(string)
-	return ok && strings.TrimSpace(text) != ""
 }

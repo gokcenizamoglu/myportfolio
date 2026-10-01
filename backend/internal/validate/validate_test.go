@@ -32,17 +32,9 @@ func TestContentRejectsNilData(t *testing.T) {
 	}
 }
 
-func TestContentRequiresTitleInAtLeastOneLanguage(t *testing.T) {
-	if err := Content("projects", decode(t, `{"description_tr":"x"}`)); err == nil {
-		t.Fatal("expected missing name to be rejected")
-	}
-	// A single language is enough.
-	if err := Content("projects", decode(t, `{"name_en":"Only English"}`)); err != nil {
-		t.Fatalf("one language should satisfy the title requirement, got %v", err)
-	}
-	// Whitespace does not count as present.
-	if err := Content("projects", decode(t, `{"name_tr":"   "}`)); err == nil {
-		t.Fatal("expected whitespace-only name to be rejected")
+func TestContentAllowsSemanticallyIncompleteDrafts(t *testing.T) {
+	if err := Content("projects", decode(t, `{"description_tr":"x"}`)); err != nil {
+		t.Fatalf("health warnings must not block drafts: %v", err)
 	}
 }
 
@@ -66,15 +58,11 @@ func TestContentRejectsUnknownKind(t *testing.T) {
 	}
 }
 
-func TestContentRequiresEssentialFieldsPerKind(t *testing.T) {
-	// Socials need a URL, documents need a file.
-	if err := Content("socials", decode(t, `{"label_tr":"GitHub"}`)); err == nil {
-		t.Fatal("expected a social without url to be rejected")
-	}
+func TestContentAllowsMissingEssentialFieldsForHealthWarnings(t *testing.T) {
 	if err := Content("socials", decode(t, `{"label_tr":"GitHub","url":"https://x"}`)); err != nil {
 		t.Fatalf("valid social rejected: %v", err)
 	}
-	if err := Content("documents", decode(t, `{"title_tr":"CV"}`)); err == nil {
-		t.Fatal("expected a document without file_url to be rejected")
+	if err := Content("documents", decode(t, `{"title_tr":"CV"}`)); err != nil {
+		t.Fatalf("missing file should be a non-blocking health warning: %v", err)
 	}
 }

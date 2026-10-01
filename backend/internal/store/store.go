@@ -35,9 +35,26 @@ func (s *Store) ListContent(kind string, visibleOnly bool) ([]model.ContentItem,
 	return items, s.db.Select(&items, query, kind)
 }
 
+func (s *Store) AllContent() ([]model.ContentItem, error) {
+	items := []model.ContentItem{}
+	return items, s.db.Select(&items, "SELECT * FROM content_items ORDER BY kind, sort_order, id")
+}
+
 func (s *Store) GetContent(kind string, id int64) (*model.ContentItem, error) {
 	var item model.ContentItem
 	return &item, s.db.Get(&item, "SELECT * FROM content_items WHERE kind = ? AND id = ?", kind, id)
+}
+
+func (s *Store) GetContentBySlug(kind, slug string, visibleOnly bool) (*model.ContentItem, error) {
+	if !AllowedKinds[kind] {
+		return nil, ErrUnknownKind
+	}
+	query := "SELECT * FROM content_items WHERE kind = ? AND slug = ?"
+	if visibleOnly {
+		query += " AND visible = 1"
+	}
+	var item model.ContentItem
+	return &item, s.db.Get(&item, query, kind, slug)
 }
 
 func (s *Store) CreateContent(item *model.ContentItem) error {
