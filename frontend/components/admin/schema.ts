@@ -19,7 +19,7 @@ export const schemas:Record<string,{label:string;title:string;fields:Field[]}>= 
 };
 
 export const settingFields:Field[]=[
-  {key:"name",label:"İsim"},...bilingual("title","Unvan"),...bilingual("tagline","Ana mesaj","textarea"),...bilingual("about_lead","Hakkımda giriş","textarea"),...bilingual("about_body","Hakkımda metni","textarea"),...bilingual("availability","Ulaşılabilirlik cümlesi","textarea"),{key:"location",label:"Konum"},{key:"seo_description",label:"SEO açıklaması",type:"textarea"},
+  {key:"name",label:"İsim"},...bilingual("title","Unvan"),...bilingual("tagline","Ana mesaj","textarea"),...bilingual("about_lead","Hakkımda giriş","textarea"),...bilingual("about_body","Hakkımda metni","textarea"),...bilingual("availability","Ulaşılabilirlik cümlesi","textarea"),{key:"location",label:"Konum"},...bilingual("seo_title","SEO başlığı"),...bilingual("seo_description","SEO açıklaması","textarea"),
   {key:"logo_mark_url",label:"Küçük logo / monogram",type:"file"},{key:"logo_wordmark_url",label:"Gökçe Güler ana logo",type:"file"},{key:"tile_about_image",label:"Hakkımda kutusu görseli",type:"file"},{key:"tile_experience_image",label:"Deneyim kutusu görseli",type:"file"},{key:"tile_work_image",label:"Projeler kutusu görseli",type:"file"},{key:"tile_contact_image",label:"İletişim kutusu görseli",type:"file"},
 ];
 

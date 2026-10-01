@@ -3,11 +3,12 @@ import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getPortfolio,getProject} from "@/lib/api";
 import type {Project} from "@/lib/types";
+import {localeAlternates,projectJsonLd,seoSiteUrl} from "@/lib/seo";
 
 export const dynamic="force-dynamic";
 type Locale="tr"|"en";
 type PageProps={params:Promise<{locale:string;slug:string}>};
-const siteUrl=process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
+const siteUrl=seoSiteUrl();
 const labels={
   tr:{back:"Portfolyoya dön",problem:"Problem / ihtiyaç",role:"Üstlendiğim rol",solution:"Geliştirdiğim çözüm",highlights:"Öne çıkanlar",outcome:"Sonuç ve etki",stack:"Teknolojiler",live:"Canlı ürünü görüntüle",github:"GitHub’da incele",other:"Diğer projeler",fallback:"Bu alan için Türkçe içerik bulunmadığından İngilizce karşılığı gösteriliyor."},
   en:{back:"Back to portfolio",problem:"Problem / need",role:"My role",solution:"Solution delivered",highlights:"Highlights",outcome:"Outcome and impact",stack:"Technologies",live:"View live product",github:"View on GitHub",other:"Other projects",fallback:"The English translation is not available for this field, so the Turkish version is shown."}
@@ -33,8 +34,7 @@ export async function generateMetadata({params}:PageProps):Promise<Metadata>{
   const title=`${localized(project,"name",locale)} — Gökçe Güler`;
   const description=localized(project,"description",locale);
   const path=`/${locale}/projects/${project.slug}`;
-  const alternateLocale=locale==="tr"?"en":"tr";
-  return {metadataBase:new URL(siteUrl),title,description,alternates:{canonical:path,languages:{tr:`/tr/projects/${project.slug}`,en:`/en/projects/${project.slug}`,"x-default":`/tr/projects/${project.slug}`}},openGraph:{title,description,url:path,type:"article",locale:locale==="tr"?"tr_TR":"en_US"},twitter:{card:"summary",title,description},other:{"content-language":locale,"alternate-locale":alternateLocale}};
+  return {metadataBase:new URL(siteUrl),title:{absolute:title},description,alternates:{canonical:path,languages:localeAlternates(`projects/${project.slug}`)},openGraph:{title,description,url:path,type:"article",locale:locale==="tr"?"tr_TR":"en_US",images:[{url:"/opengraph-image",width:1200,height:630,alt:title}]},twitter:{card:"summary_large_image",title,description,images:["/opengraph-image"]}};
 }
 
 export default async function ProjectDetailPage({params}:PageProps){
@@ -42,7 +42,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   const [project,portfolio]=await Promise.all([getProject(slug),getPortfolio()]);if(!project)notFound();
   const t=labels[locale];const projects=(portfolio?.projects||[]).filter(item=>item.slug!==project.slug).slice(0,3);const highlights=localizedList(project,"highlights",locale);
   const blocks=[{key:"problem",label:t.problem},{key:"role",label:t.role},{key:"body",label:t.solution},{key:"outcome",label:t.outcome}] as const;
-  const jsonLd={"@context":"https://schema.org","@type":"CreativeWork",name:localized(project,"name",locale),description:localized(project,"description",locale),url:`${siteUrl}/${locale}/projects/${project.slug}`,creator:{"@type":"Person",name:"Gökçe Güler"},keywords:project.tech_stack?.join(", ")};
+  const jsonLd=projectJsonLd(project,locale);
   return <main className="project-detail-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
     <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link">← {t.back}</Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>

@@ -61,6 +61,7 @@ services:
       API_URL: http://api:8080        # server-side (SSR) fetch, internal network
       NEXT_PUBLIC_API_URL: https://${DOMAIN}
       NEXT_PUBLIC_SITE_URL: https://${DOMAIN}
+      GPTBOT_ALLOW: ${GPTBOT_ALLOW:-true}
     depends_on:
       - api
     expose:

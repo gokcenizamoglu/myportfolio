@@ -125,12 +125,12 @@ func EvaluateItem(item model.ContentItem, data map[string]any, checker LinkCheck
 func evaluateSEO(settings map[string]string) []Issue {
 	issues := []Issue{}
 	for _, locale := range []string{"tr", "en"} {
-		if strings.TrimSpace(settings["title_"+locale]) == "" {
-			issues = append(issues, Issue{Code: "missing_seo_title", Severity: "critical", Kind: "settings", Locale: locale, Field: "title_" + locale, Message: "SEO başlığı eksik."})
+		if strings.TrimSpace(settings["seo_title_"+locale]) == "" {
+			issues = append(issues, Issue{Code: "missing_seo_title", Severity: "warning", Kind: "settings", Locale: locale, Field: "seo_title_" + locale, Message: "SEO başlığı eksik; varsayılan başlık kullanılacak."})
 		}
-	}
-	if strings.TrimSpace(settings["seo_description"]) == "" {
-		issues = append(issues, Issue{Code: "missing_seo_description", Severity: "critical", Kind: "settings", Field: "seo_description", Message: "SEO açıklaması eksik."})
+		if strings.TrimSpace(settings["seo_description_"+locale]) == "" && strings.TrimSpace(settings["seo_description"]) == "" {
+			issues = append(issues, Issue{Code: "missing_seo_description", Severity: "warning", Kind: "settings", Locale: locale, Field: "seo_description_" + locale, Message: "SEO açıklaması eksik; sayfa metni kullanılacak."})
+		}
 	}
 	return issues
 }

@@ -1,0 +1,5 @@
+import {ImageResponse} from "next/og";
+export const alt="Gökçe Güler — Full-Stack Software Engineer";
+export const size={width:1200,height:630};
+export const contentType="image/png";
+export default function OpenGraphImage(){return new ImageResponse(<div style={{display:"flex",width:"100%",height:"100%",alignItems:"center",justifyContent:"space-between",padding:"76px 86px",background:"#ffffff",color:"#202425",fontFamily:"Arial, sans-serif"}}><div style={{display:"flex",flexDirection:"column",maxWidth:820}}><span style={{fontSize:22,letterSpacing:5,textTransform:"uppercase",color:"#1ca7b0",fontWeight:700}}>Portfolio · Software Engineering</span><strong style={{marginTop:34,fontSize:78,lineHeight:1.02,letterSpacing:-3}}>Gökçe Güler</strong><span style={{marginTop:26,fontSize:34,lineHeight:1.25,color:"#5f6667"}}>Full-Stack Software Engineer</span><span style={{marginTop:54,width:110,height:8,background:"#f2701b"}}/></div><div style={{display:"flex",width:210,height:210,alignItems:"center",justifyContent:"center",borderRadius:999,background:"#f2701b",color:"#fff",fontFamily:"Georgia, serif",fontSize:92,fontWeight:700}}>GG</div></div>,size)}

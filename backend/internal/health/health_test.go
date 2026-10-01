@@ -57,7 +57,7 @@ func TestVisibleMissingCoreIsCriticalButDraftIsWarning(t *testing.T) {
 
 func TestFileAndSEORules(t *testing.T) {
 	document := item("documents", "cv", true, map[string]any{"title_tr": "CV", "title_en": "CV", "description_tr": "x", "description_en": "x", "file_url": "/documents/missing.pdf"})
-	report := Evaluate([]model.ContentItem{document}, map[string]string{"title_tr": "Başlık"}, fixedChecker(false))
+	report := Evaluate([]model.ContentItem{document}, map[string]string{"seo_title_tr": "Başlık"}, fixedChecker(false))
 	for _, code := range []string{"unreachable_file", "missing_seo_title", "missing_seo_description"} {
 		if !hasCode(report.Issues, code) {
 			t.Errorf("expected %s, got %+v", code, report.Issues)
