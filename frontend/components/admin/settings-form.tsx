@@ -25,8 +25,8 @@ export default function SettingsForm({settings,setSettings,setDirty,uploadForSet
       {filterFields(settingFields,languageTab).map(field=>field.type==="file"?
         <FileField key={field.key} field={{...field,label:fieldLabel(field)}} value={settings[field.key]||""} onFile={file=>uploadForSetting(field.key,file)} uploading={uploading}/>:
         <div className={`field ${field.type==="textarea"?"full":""}`} key={field.key}>
-          <label>{fieldLabel(field)}</label>
-          {field.type==="textarea"?<textarea lang={field.key.endsWith("_en")?"en":"tr"} value={settings[field.key]||""} onChange={e=>{setSettings({...settings,[field.key]:e.target.value});setDirty(true)}}/>:<input lang={field.key.endsWith("_en")?"en":"tr"} value={settings[field.key]||""} onChange={e=>{setSettings({...settings,[field.key]:e.target.value});setDirty(true)}}/>}
+          <label htmlFor={`setting-${field.key}`}>{fieldLabel(field)}</label>
+          {field.type==="textarea"?<textarea id={`setting-${field.key}`} lang={field.key.endsWith("_en")?"en":"tr"} value={settings[field.key]||""} onChange={e=>{setSettings({...settings,[field.key]:e.target.value});setDirty(true)}}/>:<input id={`setting-${field.key}`} lang={field.key.endsWith("_en")?"en":"tr"} value={settings[field.key]||""} onChange={e=>{setSettings({...settings,[field.key]:e.target.value});setDirty(true)}}/>}
         </div>)}
       <div className="editor-actions admin-sticky-actions full"><span className={dirty?"admin-save-state is-dirty":"admin-save-state"}>{dirty?"Kaydedilmemiş değişiklikler":"Tüm değişiklikler kayıtlı"}</span><button className="primary" disabled={saving||Boolean(uploading)}>{saving?"Kaydediliyor…":"Ayarları kaydet"}</button></div>
     </div>

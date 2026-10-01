@@ -1,5 +1,6 @@
 "use client";
 import {FormEvent,useCallback,useEffect,useMemo,useRef,useState} from "react";
+import Image from "next/image";
 import {apiRequest,ApiError} from "@/lib/api";
 import CvImport from "@/components/cv-import";
 import {Field,Item,LanguageTab,schemas,searchable,slugify} from "@/components/admin/schema";
@@ -45,7 +46,7 @@ export default function AdminPanel(){
   if(!authenticated)return <LoginForm login={login} setLogin={setLogin} error={error} onSubmit={signIn}/>;
   return <main className="admin-shell" aria-busy={loading||saving||Boolean(uploading)||Boolean(busy)}>
     <header className="admin-bar">
-      <div className="admin-brand"><img src="/brand/ggu.png" alt=""/><span><strong>Gökçe Güler</strong><small>Portfolyo yönetimi</small></span></div>
+      <div className="admin-brand"><Image src="/brand/ggu.png" width={48} height={48} alt=""/><span><strong>Gökçe Güler</strong><small>Portfolyo yönetimi</small></span></div>
       <div className="admin-bar-actions"><a className="admin-site-link" href="/tr" target="_blank" rel="noreferrer">Siteyi görüntüle ↗</a><button className="secondary" onClick={logout}>Çıkış</button></div>
     </header>
     <div className="admin-layout">
@@ -56,8 +57,8 @@ export default function AdminPanel(){
         <button disabled={saving||Boolean(uploading)||Boolean(busy)} className={section==="cv-import"?"active":""} onClick={()=>chooseSection("cv-import")}>CV içe aktar</button>
       </nav>
       <section className="admin-main">
-        {section!=="dashboard"&&error&&<div className="error" style={{marginBottom:16}}>{error}</div>}
-        {notice&&<div className="notice">{notice}</div>}
+        {section!=="dashboard"&&error&&<div className="error" role="alert" style={{marginBottom:16}}>{error}</div>}
+        {notice&&<div className="notice" role="status">{notice}</div>}
         {loading?<div className="admin-section-loading" role="status">İçerikler yükleniyor…</div>:section==="dashboard"?<AnalyticsDashboard request={request} onOpenIssue={openHealthIssue}/>:
           section==="cv-import"?<CvImport request={request}/>:
           section==="settings"?

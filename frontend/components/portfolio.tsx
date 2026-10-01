@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import {useEffect,useRef,useState} from "react";
 import {AnimatePresence,motion,MotionProps,useReducedMotion} from "framer-motion";
 import type {PortfolioData,Project} from "@/lib/types";
@@ -24,22 +25,32 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
     const locked=activeSection||activeProject;
     document.body.style.overflow=locked?"hidden":"";
     const onKey=(event:KeyboardEvent)=>{
-      if(event.key!=="Escape")return;
-      if(activeProject){setActiveProject(null);return}
-      if(activeSection)setActiveSection(null);
+      if(event.key==="Escape"){
+        if(activeProject){setActiveProject(null);return}
+        if(activeSection)setActiveSection(null);
+        return;
+      }
+      if(event.key!=="Tab")return;
+      const container=document.querySelector<HTMLElement>(activeProject?".proj-modal":activeSection?".page.is-active":"");
+      if(!container)return;
+      const focusable=[...container.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(element=>element.offsetParent!==null);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
     };
     window.addEventListener("keydown",onKey);
     return()=>{document.body.style.overflow="";window.removeEventListener("keydown",onKey)};
   },[activeSection,activeProject]);
 
   // Return focus to the originating control when overlays close.
-  useEffect(()=>{if(!activeSection)lastTileRef.current?.focus()},[activeSection]);
+  useEffect(()=>{if(activeSection)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>(".page.is-active .page-strip")?.focus());else lastTileRef.current?.focus()},[activeSection]);
   useEffect(()=>{
     if(activeProject){modalCloseRef.current?.focus()}
     else lastCardRef.current?.focus();
   },[activeProject]);
 
-  if(!initialData)return <main className="offline"><img src="/brand/ggu.png" alt=""/><h1>{t.apiOffline}</h1><p>{t.apiHelp}</p></main>;
+  if(!initialData)return <main className="offline"><Image src="/brand/ggu.png" width={256} height={256} alt="Gökçe Güler"/><h1>{t.apiOffline}</h1><p>{t.apiHelp}</p><a href={`/${locale}`}>{locale==="tr"?"Tekrar dene":"Try again"}</a></main>;
   const d=initialData,s=d.settings;
   const settingsText=(key:string)=>s[`${key}_${locale}`]||s[key]||"";
   const nameLogo=assetUrl(s.logo_wordmark_url)||"/brand/ggu.png";
@@ -70,7 +81,8 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
 
     <div className="gg-base" inert={overlayOpen||undefined}>
       <div className="gg-inner">
-        <img className="gg-logo" src={nameLogo} alt={s.name||"Gökçe Güler"}/>
+        <h1 className="sr-only">{s.name||"Gökçe Güler"} — {settingsText("title")}</h1>
+        <Image className="gg-logo" src={nameLogo} width={460} height={310} priority sizes="(max-width: 860px) 72vw, 320px" unoptimized={!nameLogo.startsWith("/")} alt={s.name||"Gökçe Güler"}/>
         <div className="gg-details">
           <p className="gg-role">{settingsText("title")}<span className="gg-role-dot">.</span></p>
           <p className="gg-tagline">{settingsText("tagline")}</p>

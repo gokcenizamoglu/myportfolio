@@ -4,6 +4,7 @@ import {notFound} from "next/navigation";
 import {getPortfolio,getProject} from "@/lib/api";
 import type {Project} from "@/lib/types";
 import {localeAlternates,projectJsonLd,seoSiteUrl} from "@/lib/seo";
+import {safeExternalUrl} from "@/components/portfolio/copy";
 
 export const dynamic="force-dynamic";
 type Locale="tr"|"en";
@@ -41,6 +42,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   const {locale:rawLocale,slug}=await params;if(rawLocale!=="tr"&&rawLocale!=="en")notFound();const locale=rawLocale as Locale;
   const [project,portfolio]=await Promise.all([getProject(slug),getPortfolio()]);if(!project)notFound();
   const t=labels[locale];const projects=(portfolio?.projects||[]).filter(item=>item.slug!==project.slug).slice(0,3);const highlights=localizedList(project,"highlights",locale);
+  const liveUrl=safeExternalUrl(project.live_url);const githubUrl=safeExternalUrl(project.github_url);
   const blocks=[{key:"problem",label:t.problem},{key:"role",label:t.role},{key:"body",label:t.solution},{key:"outcome",label:t.outcome}] as const;
   const jsonLd=projectJsonLd(project,locale);
   return <main className="project-detail-page">
@@ -52,7 +54,7 @@ export default async function ProjectDetailPage({params}:PageProps){
         {blocks.map(block=>localized(project,block.key,locale)&&<section key={block.key}><h2>{block.label}</h2><p>{localized(project,block.key,locale)}</p></section>)}
         {highlights.length>0&&<section><h2>{t.highlights}</h2><ul>{highlights.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul></section>}
         {project.tech_stack&&project.tech_stack.length>0&&<section><h2>{t.stack}</h2><div className="project-detail-tech">{project.tech_stack.map(tech=><span key={tech}>{tech}</span>)}</div></section>}
-        {(project.live_url||project.github_url)&&<div className="project-detail-actions">{project.live_url&&<a href={project.live_url} target="_blank" rel="noreferrer">{t.live} ↗</a>}{project.github_url&&<a href={project.github_url} target="_blank" rel="noreferrer">{t.github} ↗</a>}</div>}
+        {(liveUrl||githubUrl)&&<div className="project-detail-actions">{liveUrl&&<a href={liveUrl} target="_blank" rel="noreferrer">{t.live} ↗</a>}{githubUrl&&<a href={githubUrl} target="_blank" rel="noreferrer">{t.github} ↗</a>}</div>}
       </div>
     </article>
     {projects.length>0&&<aside className="project-related" aria-labelledby="related-title"><h2 id="related-title">{t.other}</h2><div>{projects.map(item=><Link href={`/${locale}/projects/${item.slug}`} key={item.id}><strong>{localized(item,"name",locale)}</strong><span>{localized(item,"description",locale)}</span><b aria-hidden="true">→</b></Link>)}</div></aside>}

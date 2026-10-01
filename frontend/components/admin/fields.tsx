@@ -3,7 +3,7 @@ import {apiBase} from "@/lib/api";
 import {Field,LanguageTab} from "./schema";
 
 export function FileField({field,value,onFile,uploading}:{field:Field;value:string;onFile:(file:File)=>void;uploading:string}){
-  return <div className="field"><label>{field.label}</label>{value&&<>{value.match(/\.(png|jpe?g|webp|svg)$/i)&&<img className="media-preview" src={value.startsWith("/uploads/")?`${apiBase}${value}`:value} alt="Önizleme"/>}<small>{value}</small></>}<input type="file" accept=".png,.jpg,.jpeg,.webp,.pdf" disabled={uploading===field.key} onChange={e=>{const file=e.target.files?.[0];if(file)onFile(file)}}/>{uploading===field.key&&<small>Yükleniyor…</small>}</div>;
+  const id=`field-${field.key}`;return <div className="field"><label htmlFor={id}>{field.label}</label>{value&&<>{value.match(/\.(png|jpe?g|webp|svg)$/i)&&<img className="media-preview" src={value.startsWith("/uploads/")?`${apiBase}${value}`:value} width="320" height="180" alt={`${field.label} önizlemesi`}/>}<small>{value}</small></>}<input id={id} type="file" accept=".png,.jpg,.jpeg,.webp,.pdf" disabled={uploading===field.key} aria-describedby={uploading===field.key?`${id}-status`:undefined} onChange={e=>{const file=e.target.files?.[0];if(file)onFile(file)}}/>{uploading===field.key&&<small id={`${id}-status`} role="status">Yükleniyor…</small>}</div>;
 }
 
 export function LanguageTabs({value,onChange}:{value:LanguageTab;onChange:(tab:LanguageTab)=>void}){

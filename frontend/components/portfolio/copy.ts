@@ -13,3 +13,4 @@ export type Copy=(typeof copy)[Locale];
 export function localized(item:Record<string,unknown>,key:string,locale:Locale){return String(item[`${key}_${locale}`]??item[key]??"")}
 export function localizedList(item:Record<string,unknown>,key:string,locale:Locale){const value=item[`${key}_${locale}`]??item[key];if(Array.isArray(value))return value.map(String).filter(Boolean);if(typeof value==="string")return value.split(/\r?\n/).map(part=>part.trim()).filter(Boolean);return []}
 export function assetUrl(value?:string){if(!value)return "";if(value.startsWith("/uploads/"))return `${apiBase}${value}`;return value}
+export function safeExternalUrl(value?:string){if(!value)return "";try{const parsed=new URL(value);return parsed.protocol==="http:"||parsed.protocol==="https:"?parsed.toString():""}catch{return ""}}
