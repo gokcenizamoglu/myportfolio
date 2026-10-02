@@ -12,8 +12,8 @@ type Locale="tr"|"en";
 type PageProps={params:Promise<{locale:string;slug:string}>};
 const siteUrl=seoSiteUrl();
 const labels={
-  tr:{back:"Portfolyoya dön",problem:"Problem / ihtiyaç",role:"Üstlendiğim rol",solution:"Geliştirdiğim çözüm",highlights:"Öne çıkanlar",outcome:"Sonuç ve etki",technical:"Teknik kararlar ve öğrendiklerim",stack:"Teknolojiler",live:"Canlı ürünü görüntüle",github:"GitHub’da incele",presentation:"Teknik sunumu incele",other:"Diğer projeler",fallback:"Bu alan için Türkçe içerik bulunmadığından İngilizce karşılığı gösteriliyor."},
-  en:{back:"Back to portfolio",problem:"Problem / need",role:"My role",solution:"Solution delivered",highlights:"Highlights",outcome:"Outcome and impact",technical:"Technical decisions and lessons",stack:"Technologies",live:"View live product",github:"View on GitHub",presentation:"View technical presentation",other:"Other projects",fallback:"The English translation is not available for this field, so the Turkish version is shown."}
+  tr:{back:"Portfolyoya dön",problem:"Hikâyenin başlangıcı",role:"Benim katkım",solution:"Ne geliştirdim?",highlights:"Öne çıkanlar",outcome:"Bugün nerede?",technical:"Teknik tarafta",stack:"Kullandığım araçlar",live:"Canlı ürünü görüntüle",github:"GitHub’da incele",presentation:"Teknik sunumu incele",other:"Buradan devam et",fallback:"Bu alan için Türkçe içerik bulunmadığından İngilizce karşılığı gösteriliyor."},
+  en:{back:"Back to portfolio",problem:"Where it started",role:"My part",solution:"What I built",highlights:"What stands out",outcome:"Where it stands",technical:"On the technical side",stack:"Built with",live:"View live product",github:"View on GitHub",presentation:"View technical presentation",other:"Keep exploring",fallback:"The English translation is not available for this field, so the Turkish version is shown."}
 } as const;
 const fields=["name","description","problem","role","body","highlights","outcome"] as const;
 
