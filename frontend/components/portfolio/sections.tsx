@@ -103,7 +103,7 @@ export function AboutSection({t,locale,active,inert,initial,onClose,settingsText
           <h2 className="about-section-title" id="certifications-heading">{t.certs}</h2>
           {certifications.map(cert=><div className="ab-item cert-item" key={cert.id}>
             {cert.badge_url&&<Image className="cert-badge" src={assetUrl(cert.badge_url)} width={72} height={71} alt="" unoptimized/>}
-            <div><div className="ab-main">{localized(cert,"name",locale)}{cert.attachment_url&&<a className="cert-link" href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer">{locale==="tr"?"Rozet":"Badge"} ↗</a>}</div><div className="ab-sub">{cert.issuer} · {cert.year}</div><p className="cert-description">{localized(cert,"description",locale)}</p></div>
+            <div><div className="ab-main">{localized(cert,"name",locale)}{cert.attachment_url&&<a className="cert-link" href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer">{locale==="tr"?"Sertifika":"Certificate"} ↗</a>}</div><div className="ab-sub">{cert.issuer} · {cert.year}</div><p className="cert-description">{localized(cert,"description",locale)}</p></div>
           </div>)}
         </section>
       </div>
