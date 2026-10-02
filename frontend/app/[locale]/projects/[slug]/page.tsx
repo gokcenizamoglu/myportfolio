@@ -45,6 +45,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   const t=labels[locale];const projects=(portfolio?.projects||[]).filter(item=>item.slug!==project.slug).slice(0,3);const highlights=localizedList(project,"highlights",locale);
   const liveUrl=safeExternalUrl(project.live_url);const githubUrl=safeExternalUrl(project.github_url);
   const technicalNotes=localizedList(project,"technical_notes",locale);
+  const projectName=localized(project,"name",locale);const projectInitial=Array.from(projectName.trim())[0]?.toLocaleUpperCase(locale)||"";
   const blocks=[{key:"problem",label:t.problem},{key:"role",label:t.role},{key:"body",label:t.solution},{key:"outcome",label:t.outcome}] as const;
   const jsonLd=projectJsonLd(project,locale);
   return <main className="project-detail-page">
@@ -52,7 +53,7 @@ export default async function ProjectDetailPage({params}:PageProps){
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
     <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link">← {t.back}</Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>
     <article className="project-detail-shell">
-      <div className="project-detail-hero"><p className="project-detail-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</p><h1>{localized(project,"name",locale)}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
+      <div className="project-detail-hero"><span className="project-detail-watermark" aria-hidden="true">{projectInitial}</span><p className="project-detail-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</p><h1>{projectName}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
       <div className="project-detail-content">
         {blocks.map(block=>localized(project,block.key,locale)&&<section key={block.key}><h2>{block.label}</h2><p>{localized(project,block.key,locale)}</p></section>)}
         {highlights.length>0&&<section><h2>{t.highlights}</h2><ul>{highlights.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul></section>}

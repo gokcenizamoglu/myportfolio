@@ -20,6 +20,7 @@ export function WorkSection({t,locale,active,inert,initial,onClose,featuredProje
     <div className="page-body">
       <h1 className="page-h">{t.work}</h1>
       <div className="page-sub">{t.workNote}</div>
+      {otherProjects.length>0&&<button type="button" className="other-work-jump" aria-controls="other-work" onClick={()=>document.getElementById("other-work")?.scrollIntoView({behavior:"smooth",block:"start"})}><span>{locale==="tr"?`${otherProjects.length} diğer çalışmaya git`:`View ${otherProjects.length} more projects`}</span><b aria-hidden="true">↓</b></button>}
       <div className="work-grid">
         {featuredProjects.map((project,index)=>{
           const hasDetail=hasProjectDetail(project,locale);
@@ -35,7 +36,7 @@ export function WorkSection({t,locale,active,inert,initial,onClose,featuredProje
           </motion.button>;
         })}
       </div>
-      {otherProjects.length>0&&<details className="other-work">
+      {otherProjects.length>0&&<details className="other-work" id="other-work">
         <summary className="other-work-summary"><span className="other-work-intro"><strong>{t.otherWorks}</strong><span>{t.otherWorksNote}</span></span><span className="other-work-toggle" aria-hidden="true"/></summary>
         <div className="other-work-list">{otherProjects.map(project=>{
           const hasDetail=hasProjectDetail(project,locale);
