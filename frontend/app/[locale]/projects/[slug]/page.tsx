@@ -55,10 +55,10 @@ export default async function ProjectDetailPage({params}:PageProps){
     <article className="project-detail-shell">
       <div className="project-detail-hero"><span className="project-detail-watermark" aria-hidden="true">{projectInitial}</span><p className="project-detail-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</p><h1>{projectName}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
       <div className="project-detail-content">
-        {blocks.map(block=>localized(project,block.key,locale)&&<section key={block.key}><h2>{block.label}</h2><p>{localized(project,block.key,locale)}</p></section>)}
-        {highlights.length>0&&<section><h2>{t.highlights}</h2><ul>{highlights.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul></section>}
-        {technicalNotes.length>0&&<section><h2>{t.technical}</h2>{technicalNotes.map((item,index)=><p key={`${index}-${item}`}>{item}</p>)}</section>}
-        {project.tech_stack&&project.tech_stack.length>0&&<section><h2>{t.stack}</h2><div className="project-detail-tech">{project.tech_stack.map(tech=><span key={tech}>{tech}</span>)}</div></section>}
+        {blocks.map(block=>localized(project,block.key,locale)&&<section className={`project-detail-block project-detail-${block.key}`} key={block.key}><h2>{block.label}</h2><p>{localized(project,block.key,locale)}</p></section>)}
+        {highlights.length>0&&<section className="project-detail-block project-detail-highlights"><h2>{t.highlights}</h2><ul>{highlights.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul></section>}
+        {technicalNotes.length>0&&<section className="project-detail-block project-detail-technical"><h2>{t.technical}</h2>{technicalNotes.map((item,index)=><p key={`${index}-${item}`}>{item}</p>)}</section>}
+        {project.tech_stack&&project.tech_stack.length>0&&<section className="project-detail-block project-detail-stack"><h2>{t.stack}</h2><div className="project-detail-tech">{project.tech_stack.map(tech=><span key={tech}>{tech}</span>)}</div></section>}
         {(liveUrl||githubUrl||project.presentation_url)&&<div className="project-detail-actions">{liveUrl&&<a href={liveUrl} target="_blank" rel="noreferrer">{String(project[`live_url_label_${locale}`]||t.live)} ↗</a>}{githubUrl&&<a href={githubUrl} target="_blank" rel="noreferrer">{t.github} ↗</a>}{project.presentation_url&&<a href={assetUrl(project.presentation_url)} target="_blank" rel="noreferrer">{t.presentation} ↗</a>}</div>}
       </div>
     </article>
