@@ -4,7 +4,7 @@ import {notFound} from "next/navigation";
 import {getPortfolio,getProject} from "@/lib/api";
 import type {Project} from "@/lib/types";
 import {localeAlternates,projectJsonLd,seoSiteUrl} from "@/lib/seo";
-import {safeExternalUrl} from "@/components/portfolio/copy";
+import {assetUrl,projectPeriod,safeExternalUrl,statusLabel} from "@/components/portfolio/copy";
 import AnalyticsTracker from "@/components/portfolio/analytics-tracker";
 
 export const dynamic="force-dynamic";
@@ -12,8 +12,8 @@ type Locale="tr"|"en";
 type PageProps={params:Promise<{locale:string;slug:string}>};
 const siteUrl=seoSiteUrl();
 const labels={
-  tr:{back:"Portfolyoya dön",problem:"Problem / ihtiyaç",role:"Üstlendiğim rol",solution:"Geliştirdiğim çözüm",highlights:"Öne çıkanlar",outcome:"Sonuç ve etki",stack:"Teknolojiler",live:"Canlı ürünü görüntüle",github:"GitHub’da incele",other:"Diğer projeler",fallback:"Bu alan için Türkçe içerik bulunmadığından İngilizce karşılığı gösteriliyor."},
-  en:{back:"Back to portfolio",problem:"Problem / need",role:"My role",solution:"Solution delivered",highlights:"Highlights",outcome:"Outcome and impact",stack:"Technologies",live:"View live product",github:"View on GitHub",other:"Other projects",fallback:"The English translation is not available for this field, so the Turkish version is shown."}
+  tr:{back:"Portfolyoya dön",problem:"Problem / ihtiyaç",role:"Üstlendiğim rol",solution:"Geliştirdiğim çözüm",highlights:"Öne çıkanlar",outcome:"Sonuç ve etki",technical:"Teknik kararlar ve öğrendiklerim",stack:"Teknolojiler",live:"Canlı ürünü görüntüle",github:"GitHub’da incele",presentation:"Teknik sunumu incele",other:"Diğer projeler",fallback:"Bu alan için Türkçe içerik bulunmadığından İngilizce karşılığı gösteriliyor."},
+  en:{back:"Back to portfolio",problem:"Problem / need",role:"My role",solution:"Solution delivered",highlights:"Highlights",outcome:"Outcome and impact",technical:"Technical decisions and lessons",stack:"Technologies",live:"View live product",github:"View on GitHub",presentation:"View technical presentation",other:"Other projects",fallback:"The English translation is not available for this field, so the Turkish version is shown."}
 } as const;
 const fields=["name","description","problem","role","body","highlights","outcome"] as const;
 
@@ -23,7 +23,7 @@ function localized(project:Project,key:typeof fields[number],locale:Locale){
   const legacy=project[key];
   return String(primary||alternate||legacy||"");
 }
-function localizedList(project:Project,key:"highlights",locale:Locale){
+function localizedList(project:Project,key:string,locale:Locale){
   const value=project[`${key}_${locale}`]||project[`${key}_${locale==="tr"?"en":"tr"}`]||project[key];
   if(Array.isArray(value))return value.map(String).filter(Boolean);
   return String(value||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
@@ -44,6 +44,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   const [project,portfolio]=await Promise.all([getProject(slug),getPortfolio()]);if(!project)notFound();
   const t=labels[locale];const projects=(portfolio?.projects||[]).filter(item=>item.slug!==project.slug).slice(0,3);const highlights=localizedList(project,"highlights",locale);
   const liveUrl=safeExternalUrl(project.live_url);const githubUrl=safeExternalUrl(project.github_url);
+  const technicalNotes=localizedList(project,"technical_notes",locale);
   const blocks=[{key:"problem",label:t.problem},{key:"role",label:t.role},{key:"body",label:t.solution},{key:"outcome",label:t.outcome}] as const;
   const jsonLd=projectJsonLd(project,locale);
   return <main className="project-detail-page">
@@ -51,12 +52,13 @@ export default async function ProjectDetailPage({params}:PageProps){
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
     <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link">← {t.back}</Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>
     <article className="project-detail-shell">
-      <div className="project-detail-hero"><p className="project-detail-meta">{[project.category,project.employer,project.year].filter(Boolean).join(" · ")}</p><h1>{localized(project,"name",locale)}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
+      <div className="project-detail-hero"><p className="project-detail-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</p><h1>{localized(project,"name",locale)}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
       <div className="project-detail-content">
         {blocks.map(block=>localized(project,block.key,locale)&&<section key={block.key}><h2>{block.label}</h2><p>{localized(project,block.key,locale)}</p></section>)}
         {highlights.length>0&&<section><h2>{t.highlights}</h2><ul>{highlights.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul></section>}
+        {technicalNotes.length>0&&<section><h2>{t.technical}</h2>{technicalNotes.map((item,index)=><p key={`${index}-${item}`}>{item}</p>)}</section>}
         {project.tech_stack&&project.tech_stack.length>0&&<section><h2>{t.stack}</h2><div className="project-detail-tech">{project.tech_stack.map(tech=><span key={tech}>{tech}</span>)}</div></section>}
-        {(liveUrl||githubUrl)&&<div className="project-detail-actions">{liveUrl&&<a href={liveUrl} target="_blank" rel="noreferrer">{t.live} ↗</a>}{githubUrl&&<a href={githubUrl} target="_blank" rel="noreferrer">{t.github} ↗</a>}</div>}
+        {(liveUrl||githubUrl||project.presentation_url)&&<div className="project-detail-actions">{liveUrl&&<a href={liveUrl} target="_blank" rel="noreferrer">{String(project[`live_url_label_${locale}`]||t.live)} ↗</a>}{githubUrl&&<a href={githubUrl} target="_blank" rel="noreferrer">{t.github} ↗</a>}{project.presentation_url&&<a href={assetUrl(project.presentation_url)} target="_blank" rel="noreferrer">{t.presentation} ↗</a>}</div>}
       </div>
     </article>
     {projects.length>0&&<aside className="project-related" aria-labelledby="related-title"><h2 id="related-title">{t.other}</h2><div>{projects.map(item=><Link href={`/${locale}/projects/${item.slug}`} key={item.id}><strong>{localized(item,"name",locale)}</strong><span>{localized(item,"description",locale)}</span><b aria-hidden="true">→</b></Link>)}</div></aside>}

@@ -47,6 +47,7 @@ var schemas = map[string]ruleSchema{
 	"skills":         {Title: "group", Bilingual: []string{"group"}},
 	"socials":        {Title: "label", Bilingual: []string{"label"}},
 	"documents":      {Title: "title", Description: "description", Bilingual: []string{"title", "description"}},
+	"articles":       {Title: "title", Description: "summary", Bilingual: []string{"title", "summary"}},
 }
 
 func Evaluate(items []model.ContentItem, settings map[string]string, checker LinkChecker) Report {
@@ -181,7 +182,7 @@ func validHTTPURL(value string) bool {
 	return err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != ""
 }
 func validFileURL(value string) bool {
-	return strings.HasPrefix(value, "/uploads/") || strings.HasPrefix(value, "/documents/") || validHTTPURL(value)
+	return strings.HasPrefix(value, "/uploads/") || strings.HasPrefix(value, "/documents/") || strings.HasPrefix(value, "/certifications/") || validHTTPURL(value)
 }
 func label(field string) string {
 	return map[string]string{"name": "Başlık", "role": "Rol", "description": "Açıklama", "problem": "Problem", "body": "Katkı", "highlights": "Öne çıkanlar", "outcome": "Sonuç", "degree": "Derece", "detail": "Detay", "school": "Okul", "group": "Grup", "label": "Etiket", "title": "Başlık", "live_url": "Canlı bağlantı", "github_url": "GitHub bağlantısı"}[field]

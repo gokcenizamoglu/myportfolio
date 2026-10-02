@@ -23,6 +23,11 @@ func newTestStore(t *testing.T) *Store {
 	if err := Migrate(db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
+	// Content migrations deliberately populate the real portfolio. Store unit
+	// tests isolate the persistence behavior from that editorial fixture.
+	if _, err := db.Exec("DELETE FROM content_items"); err != nil {
+		t.Fatalf("clear migrated content: %v", err)
+	}
 	return New(db)
 }
 

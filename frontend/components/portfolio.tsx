@@ -104,7 +104,7 @@ export default function Portfolio({initialData,locale}:{initialData:PortfolioDat
 
     <WorkSection t={t} locale={locale} active={activeSection==="work"} inert={sectionInert("work")} initial={initials[2]} onClose={()=>setActiveSection(null)} featuredProjects={featuredProjects} otherProjects={otherProjects} cardMotion={cardMotion} openProject={openProject}/>
     <ExperienceSection t={t} locale={locale} active={activeSection==="experience"} inert={sectionInert("experience")} initial={initials[1]} onClose={()=>setActiveSection(null)} experiences={d.experiences}/>
-    <AboutSection t={t} locale={locale} active={activeSection==="about"} inert={sectionInert("about")} initial={initials[0]} onClose={()=>setActiveSection(null)} settingsText={settingsText} skills={d.skills} education={d.education} certifications={d.certifications} cvDocuments={cvDocuments}/>
+    <AboutSection t={t} locale={locale} active={activeSection==="about"} inert={sectionInert("about")} initial={initials[0]} onClose={()=>setActiveSection(null)} settingsText={settingsText} skills={d.skills} education={d.education} certifications={d.certifications} articles={d.articles||[]} cvDocuments={cvDocuments}/>
     <ContactSection t={t} locale={locale} active={activeSection==="contact"} inert={sectionInert("contact")} initial={initials[3]} onClose={()=>setActiveSection(null)} settingsText={settingsText} emailLink={emailLink} otherLinks={otherLinks}/>
 
     <AnimatePresence>

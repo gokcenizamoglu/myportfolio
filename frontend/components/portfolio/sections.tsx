@@ -1,7 +1,8 @@
 "use client";
 import {motion,MotionProps} from "framer-motion";
-import type {Certification,Education,Experience,Project,SkillGroup,Social} from "@/lib/types";
-import {Copy,Locale,assetUrl,localized,localizedList} from "./copy";
+import Image from "next/image";
+import type {Article,Certification,Education,Experience,Project,SkillGroup,Social} from "@/lib/types";
+import {Copy,Locale,assetUrl,localized,localizedList,projectPeriod,statusLabel} from "./copy";
 import {apiBase} from "@/lib/api";
 
 type BaseProps={t:Copy;locale:Locale;active:boolean;inert:boolean|undefined;initial:string;onClose:()=>void};
@@ -38,7 +39,7 @@ export function WorkSection({t,locale,active,inert,initial,onClose,featuredProje
               {(project.open_source||project.github_url)&&<span className="proj-oss">{t.openSource}</span>}
               <span className="proj-name">{localized(project,"name",locale)}</span>
               <span className="proj-desc">{localized(project,"description",locale)}</span>
-              <span className="proj-meta">{[project.category,project.employer,project.year].filter(Boolean).join(" · ")}</span>
+              <span className="proj-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</span>
               <span className="proj-tags">{project.tech_stack?.slice(0,5).map(tag=><span className="ptag" key={tag}>{tag}</span>)}{project.tech_stack&&project.tech_stack.length>5&&<span className="ptag ptag-more">+{project.tech_stack.length-5}</span>}</span>
               {hasDetail&&<span className="proj-more">{t.detail} →</span>}
             </span>
@@ -72,7 +73,8 @@ export function ExperienceSection({t,locale,active,inert,initial,onClose,experie
   </div>;
 }
 
-export function AboutSection({t,locale,active,inert,initial,onClose,settingsText,skills,education,certifications,cvDocuments}:BaseProps&{settingsText:(key:string)=>string;skills:SkillGroup[];education:Education[];certifications:Certification[];cvDocuments:import("@/lib/types").DocumentItem[]}){
+export function AboutSection({t,locale,active,inert,initial,onClose,settingsText,skills,education,certifications,articles,cvDocuments}:BaseProps&{settingsText:(key:string)=>string;skills:SkillGroup[];education:Education[];certifications:Certification[];articles:Article[];cvDocuments:import("@/lib/types").DocumentItem[]}){
+  const featuredArticles=articles.filter(article=>article.featured);
   return <div className={`page section-about${active?" is-active":""}`} role="dialog" aria-modal="true" aria-hidden={!active} inert={inert} aria-label={t.nav[0]}>
     <div className="page-body">
       <h1 className="page-h">{t.about}</h1>
@@ -98,9 +100,17 @@ export function AboutSection({t,locale,active,inert,initial,onClose,settingsText
         </section>
         <section className="about-col" aria-labelledby="certifications-heading">
           <h2 className="about-section-title" id="certifications-heading">{t.certs}</h2>
-          {certifications.map(cert=><div className="ab-item" key={cert.id}><div className="ab-main">{localized(cert,"name",locale)}{typeof cert.attachment_url==="string"&&cert.attachment_url?<a className="cert-link" href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer">PDF ↗</a>:null}</div><div className="ab-sub">{cert.issuer} {cert.year}</div></div>)}
+          {certifications.map(cert=><div className="ab-item cert-item" key={cert.id}>
+            {cert.badge_url&&<Image className="cert-badge" src={assetUrl(cert.badge_url)} width={72} height={71} alt="" unoptimized/>}
+            <div><div className="ab-main">{localized(cert,"name",locale)}{cert.attachment_url&&<a className="cert-link" href={assetUrl(cert.attachment_url)} target="_blank" rel="noreferrer">{locale==="tr"?"Rozet":"Badge"} ↗</a>}</div><div className="ab-sub">{cert.issuer} · {cert.year}</div><p className="cert-description">{localized(cert,"description",locale)}</p></div>
+          </div>)}
         </section>
       </div>
+      {articles.length>0&&<section className="about-section writing-section" aria-labelledby="articles-heading">
+        <h2 className="about-section-title" id="articles-heading">{t.articles}</h2><p className="writing-note">{t.articlesNote}</p>
+        <div className="featured-articles">{featuredArticles.map(article=><a href={article.url} target="_blank" rel="noreferrer" key={article.id}><span>{article.topics?.join(" · ")}</span><strong>{localized(article,"title",locale)}</strong><p>{localized(article,"summary",locale)}</p>{locale==="en"&&article.language==="tr"&&<small>Turkish article</small>}</a>)}</div>
+        <details className="all-articles"><summary>{t.allArticles} <span>{articles.length}</span></summary><div>{articles.map(article=><a href={article.url} target="_blank" rel="noreferrer" key={article.id}><strong>{localized(article,"title",locale)}</strong><span>{article.publication}{locale==="en"&&article.language==="tr"?" · Turkish article":""}</span><b aria-hidden="true">↗</b></a>)}</div></details>
+      </section>}
       {cvDocuments.length>0&&<section className="resume-cta" aria-labelledby="resume-heading">
         <div className="resume-copy"><h2 id="resume-heading">{t.library}</h2><p>{t.libraryNote}</p></div>
         <div className="resume-actions">{cvDocuments.map((document,index)=><a className={`resume-link${index===0?" is-primary":""}`} href={`${apiBase}/api/v1/documents/${encodeURIComponent(document.slug)}/download?locale=${locale}`} target="_blank" rel="noreferrer" key={document.id}>{localized(document,"title",locale)} <span aria-hidden="true">↗</span></a>)}</div>

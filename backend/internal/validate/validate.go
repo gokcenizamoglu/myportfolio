@@ -37,8 +37,8 @@ type schema struct {
 var contentSchemas = map[string]schema{
 	"projects": {
 		title:         "name",
-		bilingualText: []string{"name", "description", "role", "problem", "body", "highlights", "outcome"},
-		strings:       []string{"category", "employer", "year", "live_url", "github_url"},
+		bilingualText: []string{"name", "description", "role", "problem", "body", "highlights", "outcome", "technical_notes", "live_url_label"},
+		strings:       []string{"category", "status", "employer", "year", "start_date", "end_date", "live_url", "github_url", "presentation_url"},
 		lists:         []string{"tech_stack", "domains"},
 		bools:         []string{"featured", "open_source"},
 	},
@@ -56,7 +56,15 @@ var contentSchemas = map[string]schema{
 	"certifications": {
 		title:         "name",
 		bilingualText: []string{"name", "description"},
-		strings:       []string{"issuer", "year", "attachment_url"},
+		strings:       []string{"issuer", "year", "attachment_url", "badge_url", "credential_id"},
+	},
+	"articles": {
+		title:         "title",
+		bilingualText: []string{"title", "summary"},
+		strings:       []string{"publication", "published_at", "url", "language"},
+		lists:         []string{"topics"},
+		bools:         []string{"featured"},
+		required:      []string{"url"},
 	},
 	"skills": {
 		title:         "group",

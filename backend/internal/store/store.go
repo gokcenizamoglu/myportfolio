@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var AllowedKinds = map[string]bool{"projects": true, "experiences": true, "education": true, "certifications": true, "skills": true, "socials": true, "documents": true}
+var AllowedKinds = map[string]bool{"projects": true, "experiences": true, "education": true, "certifications": true, "skills": true, "socials": true, "documents": true, "articles": true}
 
 // ErrUnknownKind is returned when a content kind is not in the allowlist.
 var ErrUnknownKind = errors.New("unknown content type")

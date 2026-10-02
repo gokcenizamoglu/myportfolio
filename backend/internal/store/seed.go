@@ -3,25 +3,24 @@ package store
 import (
 	"encoding/json"
 
-	"github.com/gokceguler/portfolio/backend/internal/model"
 	"github.com/jmoiron/sqlx"
 )
 
-// Seed loads the canonical portfolio content. It only runs against an empty
-// database, so it doubles as the single source of truth for the site's
-// content: to refresh a dev database, delete it and run with --seed.
+// Seed fills missing baseline content without overwriting records maintained by
+// data migrations or the admin panel.
 func Seed(db *sqlx.DB) error {
-	// Guard on projects specifically: schema migrations seed the CV documents,
-	// so content_items is non-empty on a fresh DB before this runs. Projects
-	// are only ever created here, making them the reliable "already seeded" mark.
 	var count int
-	if err := db.Get(&count, "SELECT COUNT(*) FROM content_items WHERE kind = 'projects'"); err != nil || count > 0 {
+	if err := db.Get(&count, "SELECT COUNT(*) FROM content_items WHERE kind = 'projects'"); err != nil {
 		return err
 	}
-	s := New(db)
+	projectsManagedByMigration := count > 0
 	add := func(kind, slug string, order int, data map[string]any) error {
+		if kind == "projects" && projectsManagedByMigration {
+			return nil
+		}
 		raw, _ := json.Marshal(data)
-		return s.CreateContent(&model.ContentItem{Kind: kind, Slug: slug, Data: string(raw), SortOrder: order, Visible: true})
+		_, err := db.Exec(`INSERT OR IGNORE INTO content_items(kind,slug,data,sort_order,visible) VALUES(?,?,?,?,1)`, kind, slug, string(raw), order)
+		return err
 	}
 
 	type row struct {
@@ -244,8 +243,6 @@ func Seed(db *sqlx.DB) error {
 	certs := []row{
 		{"salesforce-admin", map[string]any{"name_tr": "Salesforce Certified Administrator", "name_en": "Salesforce Certified Administrator", "issuer": "Salesforce", "year": "", "description_tr": "Salesforce platformunda kullanıcı, güvenlik, otomasyon ve CRM yönetimi.", "description_en": "User, security, automation and CRM management on the Salesforce platform."}},
 		{"salesforce-agentforce", map[string]any{"name_tr": "Salesforce Agentforce Specialist", "name_en": "Salesforce Agentforce Specialist", "issuer": "Salesforce", "year": "", "description_tr": "Yapay zekâ destekli Agentforce çözümlerinin tasarımı ve yönetimi.", "description_en": "Design and management of AI-powered Agentforce solutions."}},
-		{"ibm-data-analyst", map[string]any{"name_tr": "IBM Data Analyst Professional", "name_en": "IBM Data Analyst Professional", "issuer": "IBM", "year": "", "description_tr": "Veri analizi, görselleştirme, SQL ve iş zekâsı.", "description_en": "Data analysis, visualization, SQL and business intelligence."}},
-		{"miuul-data-scientist", map[string]any{"name_tr": "Miuul Data Scientist Path", "name_en": "Miuul Data Scientist Path", "issuer": "Miuul", "year": "", "description_tr": "Makine öğrenmesi, öneri sistemleri, CRM analitiği ve özellik mühendisliği.", "description_en": "Machine learning, recommendation systems, CRM analytics and feature engineering."}},
 	}
 	for i, c := range certs {
 		if err := add("certifications", c.slug, i+1, c.data); err != nil {
@@ -279,7 +276,7 @@ func Seed(db *sqlx.DB) error {
 	// CV documents are seeded by migration 002 (they are tied to the media/
 	// localization schema step), so they are intentionally not duplicated here.
 
-	return s.SetSettings(map[string]string{
+	settings := map[string]string{
 		"name":              "Gökçe Güler",
 		"title":             "Full-Stack Software Engineer",
 		"title_tr":          "Full-Stack Yazılım Mühendisi",
@@ -297,5 +294,11 @@ func Seed(db *sqlx.DB) error {
 		"seo_description":   "Portfolio of Gökçe Güler, Full-Stack Software Engineer.",
 		"logo_mark_url":     "/brand/yazısız.png",
 		"logo_wordmark_url": "/brand/ggu.png",
-	})
+	}
+	for key, value := range settings {
+		if _, err := db.Exec(`INSERT OR IGNORE INTO site_settings(key,value) VALUES(?,?)`, key, value); err != nil {
+			return err
+		}
+	}
+	return nil
 }

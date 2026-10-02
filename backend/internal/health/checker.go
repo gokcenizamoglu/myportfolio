@@ -29,7 +29,7 @@ func (c *FileChecker) Reachable(raw string) bool {
 		return err == nil && !info.IsDir()
 	}
 	target := raw
-	if strings.HasPrefix(raw, "/documents/") {
+	if strings.HasPrefix(raw, "/documents/") || strings.HasPrefix(raw, "/certifications/") {
 		target = c.publicSiteURL + raw
 	}
 	parsed, err := url.Parse(target)

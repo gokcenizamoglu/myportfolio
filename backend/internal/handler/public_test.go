@@ -26,6 +26,9 @@ func newTestStore(t *testing.T) *store.Store {
 	if err := store.Migrate(db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
+	if _, err := db.Exec("DELETE FROM content_items"); err != nil {
+		t.Fatalf("clear migrated content: %v", err)
+	}
 	return store.New(db)
 }
 

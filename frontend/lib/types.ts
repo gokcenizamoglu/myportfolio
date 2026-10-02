@@ -19,7 +19,7 @@ export type Bilingual<Base extends string> = {
 };
 
 export type Project = ContentItem &
-  Bilingual<"name" | "description" | "role" | "problem" | "body" | "highlights" | "outcome"> & {
+  Bilingual<"name" | "description" | "role" | "problem" | "body" | "highlights" | "outcome" | "technical_notes"> & {
     tech_stack?: string[];
     domains?: string[];
     category?: string;
@@ -29,6 +29,12 @@ export type Project = ContentItem &
     github_url?: string;
     open_source?: boolean;
     featured?: boolean;
+    start_date?: string;
+    end_date?: string;
+    status?: string;
+    live_url_label_tr?: string;
+    live_url_label_en?: string;
+    presentation_url?: string;
   };
 
 export type Experience = ContentItem &
@@ -46,11 +52,21 @@ export type Education = ContentItem &
   };
 
 export type Certification = ContentItem &
-  Bilingual<"name"> & {
+  Bilingual<"name" | "description"> & {
     issuer?: string;
     year?: string;
     attachment_url?: string;
+    badge_url?: string;
   };
+
+export type Article = ContentItem & Bilingual<"title" | "summary"> & {
+  publication?: string;
+  published_at?: string;
+  url?: string;
+  language?: string;
+  topics?: string[];
+  featured?: boolean;
+};
 
 export type SkillGroup = ContentItem &
   Bilingual<"group"> & {
@@ -77,5 +93,6 @@ export type PortfolioData = {
   skills: SkillGroup[];
   socials: Social[];
   documents: DocumentItem[];
+  articles: Article[];
   settings: Record<string, string>;
 };
