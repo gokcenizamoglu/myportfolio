@@ -20,17 +20,6 @@ export function WorkSection({t,locale,active,inert,initial,onClose,featuredProje
     <div className="page-body">
       <h1 className="page-h">{t.work}</h1>
       <div className="page-sub">{t.workNote}</div>
-      {otherProjects.length>0&&<details className="other-work">
-        <summary className="other-work-summary"><span className="other-work-intro"><strong>{t.otherWorks}</strong><span>{t.otherWorksNote}</span></span><span className="other-work-toggle" aria-hidden="true"/></summary>
-        <div className="other-work-list">{otherProjects.map(project=>{
-          const hasDetail=hasProjectDetail(project,locale);
-          return <button type="button" className="other-work-item" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
-            <span className="other-work-copy"><strong>{localized(project,"name",locale)}</strong><span>{localized(project,"description",locale)}</span></span>
-            <span className="other-work-tech">{project.tech_stack?.slice(0,3).join(" · ")}</span>
-            {hasDetail&&<span className="other-work-arrow" aria-hidden="true">→</span>}
-          </button>;
-        })}</div>
-      </details>}
       <div className="work-grid">
         {featuredProjects.map((project,index)=>{
           const hasDetail=hasProjectDetail(project,locale);
@@ -46,6 +35,17 @@ export function WorkSection({t,locale,active,inert,initial,onClose,featuredProje
           </motion.button>;
         })}
       </div>
+      {otherProjects.length>0&&<details className="other-work">
+        <summary className="other-work-summary"><span className="other-work-intro"><strong>{t.otherWorks}</strong><span>{t.otherWorksNote}</span></span><span className="other-work-toggle" aria-hidden="true"/></summary>
+        <div className="other-work-list">{otherProjects.map(project=>{
+          const hasDetail=hasProjectDetail(project,locale);
+          return <button type="button" className="other-work-item" key={project.id} onClick={hasDetail?event=>openProject(project,event.currentTarget):undefined} aria-haspopup={hasDetail?"dialog":undefined} data-interactive={hasDetail?"true":"false"}>
+            <span className="other-work-copy"><strong>{localized(project,"name",locale)}</strong><span>{localized(project,"description",locale)}</span></span>
+            <span className="other-work-tech">{project.tech_stack?.slice(0,3).join(" · ")}</span>
+            {hasDetail&&<span className="other-work-arrow" aria-hidden="true">→</span>}
+          </button>;
+        })}</div>
+      </details>}
     </div>
     <CloseStrip variant="work" initial={initial} back={t.back} name={t.nav[2]} onClose={onClose}/>
   </div>;
