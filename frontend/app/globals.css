@@ -163,6 +163,31 @@
 .exp-desc p{margin:0 0 8px}.exp-desc p:last-child{margin-bottom:0}.exp-desc ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}.exp-desc li{position:relative;padding-left:18px}.exp-desc li:before{content:"";position:absolute;left:0;top:.72em;width:7px;height:2px;background:var(--crimson)}
 .exp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
 
+@media(min-width:821px){
+  .section-experience{grid-template-columns:minmax(0,1fr) 88px}
+  .section-experience .page-body{padding:32px 42px 38px}
+  .section-experience .page-h{margin-bottom:12px;padding-bottom:11px;font-size:36px}
+  .section-experience .page-h:after{width:46px;height:2px}
+  .section-experience .page-sub{max-width:none;margin-bottom:22px;font-size:13px;line-height:1.55}
+  .section-experience .page-strip{align-items:center;justify-content:flex-start;padding:20px 12px}
+  .section-experience .strip-x{top:20px;right:auto;left:50%;transform:translateX(-50%)}
+  .section-experience .strip-monogram{left:50%;font-size:108px}
+  .section-experience .strip-label{align-self:center;margin-top:auto;font-size:16px;writing-mode:vertical-rl;transform:rotate(180deg)}
+  .section-experience .strip-label:after{display:none}
+  .section-experience .experience-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .section-experience .exp-item{display:block;min-width:0;padding:18px 20px}
+  .section-experience .exp-item.is-current{grid-column:1/-1;display:grid;grid-template-columns:125px minmax(0,1fr);gap:22px;padding:20px 24px}
+  .section-experience .exp-item.is-current .exp-desc{max-width:none}
+  .section-experience .exp-item.is-current .exp-desc ul{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;row-gap:7px}
+  .section-experience .exp-date{margin-bottom:10px}
+  .section-experience .exp-role{font-size:16px}
+  .section-experience .exp-org{margin-bottom:8px}
+  .section-experience .exp-desc{max-width:none;font-size:12.5px;line-height:1.55}
+  .section-experience .exp-tags{margin-top:10px}
+  .section-experience .ptag{padding:3px 8px;font-size:10px}
+}
+@media(min-width:1200px){.section-experience .experience-list{grid-template-columns:repeat(3,minmax(0,1fr))}.section-experience .exp-item.is-current{grid-column:1/-1}}
+
 /* ═══ ABOUT ═══ */
 .about-lead{font-family:var(--fd);font-weight:300;font-size:clamp(19px,2.1vw,24px);line-height:1.6;color:var(--fg);max-width:660px;margin-bottom:22px}
 .long-copy{font-family:var(--fb);font-size:14px;line-height:1.8;color:var(--fg2);max-width:600px;margin-bottom:22px}

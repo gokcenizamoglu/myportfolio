@@ -61,7 +61,7 @@ export function ExperienceSection({t,locale,active,inert,initial,onClose,experie
       <div className="experience-list">{experiences.map(item=>{
         const ongoing=!item.end_date||item.end_date.toLowerCase()==="present";
         const description=structuredText(localized(item,"description",locale));
-        return <div className="exp-item" key={item.id}>
+        return <div className={`exp-item${ongoing?" is-current":""}`} key={item.id}>
         <div className="exp-date">{item.start_date}<br/>— {ongoing?t.present:item.end_date}</div>
         <div>
           <div className="exp-role">{localized(item,"role",locale)}{ongoing&&<span className="exp-current">{t.current}</span>}</div>
