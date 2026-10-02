@@ -51,7 +51,7 @@ export default async function ProjectDetailPage({params}:PageProps){
   return <main className="project-detail-page">
     <AnalyticsTracker locale={locale} path={`/${locale}/projects/${project.slug}`} projectSlug={project.slug}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
-    <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link">← {t.back}</Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>
+    <header className="project-detail-top"><Link href={`/${locale}`} className="project-home-link"><span className="project-home-brand">Gökçe Güler</span><span>← {t.back}</span></Link><nav aria-label="Language"><Link className={locale==="tr"?"active":""} href={`/tr/projects/${project.slug}`}>TR</Link><span>/</span><Link className={locale==="en"?"active":""} href={`/en/projects/${project.slug}`}>EN</Link></nav></header>
     <article className="project-detail-shell">
       <div className="project-detail-hero"><span className="project-detail-watermark" aria-hidden="true">{projectInitial}</span><p className="project-detail-meta">{[statusLabel(project.status,locale),project.employer,projectPeriod(project,locale)||project.year].filter(Boolean).join(" · ")}</p><h1>{projectName}</h1><p className="project-detail-intro">{localized(project,"description",locale)}</p>{usesFallback(project,locale)&&<p className="project-fallback-note">{t.fallback}</p>}</div>
       <div className="project-detail-content">
